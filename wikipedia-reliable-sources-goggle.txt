@@ -375,7 +375,7 @@ $boost,site=wired.com
 $boost,site=worldsinmotion.biz
 $boost,site=x-play.com
 $boost,site=ysrnry.co.uk
-$downrank=-1,site=mondoweiss.net
+$downrank,site=mondoweiss.net
 /en/$downrank,site=aa.com.tr
 $downrank,site=about.com
 $downrank,site=alexa.com
