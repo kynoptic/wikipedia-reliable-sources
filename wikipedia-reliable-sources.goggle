@@ -1421,9 +1421,9 @@ $downrank=2,site=themarysue.com
 $downrank=2,site=twingalaxies.com
 $downrank=2,site=vgmonline.net
 $downrank=2,site=xbox.com
-/*/forums^$discard,site=*.gamespot.com
-/forums^$discard,site=*.gamespot.com
-/profile^$discard,site=*.gamespot.com
+/*/forums^$discard,site=gamespot.com
+/forums^$discard,site=gamespot.com
+/profile^$discard,site=gamespot.com
 /boards^$discard,site=1up.com
 /do/blogentry^$discard,site=1up.com
 /games/*/screenshot.html^$discard,site=4gamer.net
