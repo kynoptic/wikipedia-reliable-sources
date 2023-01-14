@@ -1468,7 +1468,7 @@ $discard,site=forums.toucharcade.com
 /community*$discard,site=gamestar.de
 /xenforo*$discard,site=gamestar.de
 /forum*$discard,site=gamestar.hu
-/objects/*/*/boards.html*$discard,site=gamestats.com
+/objects/*/boards.html*$discard,site=gamestats.com
 /forum*$discard,site=gamestm.co.uk
 /forums*$discard,site=gametab.com
 /comment_window*$discard,site=gametrailers.com
@@ -1508,9 +1508,9 @@ $discard,site=gpforums.co.nz
 /tips/forum*$discard,site=kotaku.com
 /apple-deals*$discard,site=macworld.co.uk
 /press-releases*$discard,site=mcvuk.com
-/game/*/*/details*$discard,site=metacritic.com
-/game/*/*/trailers*$discard,site=metacritic.com
-/game/*/*/user-reviews*$discard,site=metacritic.com
+/game/*/details*$discard,site=metacritic.com
+/game/*/trailers*$discard,site=metacritic.com
+/game/*/user-reviews*$discard,site=metacritic.com
 /forum*$discard,site=miastogier.pl
 $discard,site=mmogchart.com
 $discard,site=mmorpg.com
@@ -1633,7 +1633,6 @@ category/directors-cuts*$boost=2,site=wallflowerpress.co.uk
 fli*$boost=2,site=webapp1.dlib.indiana.edu
 fli/index.jsp*$boost=2,site=webapp1.dlib.indiana.edu
 search?qt=hotseries&q=se%3a%22rutgers+films+in+print%22*$boost=2,site=worldcat.org
-servlet/impc.filmtitleservlet?vetted=t*$boost=2,site=wwwdb.oscars.org:8100
 
 ! Source: Wikipedia:WikiProject_Albums/Sources
 /1/2/3/4$boost=boost number,site=domain
