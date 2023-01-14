@@ -1634,9 +1634,7 @@ fli^$boost=2,site=webapp1.dlib.indiana.edu
 fli/index.jsp^$boost=2,site=webapp1.dlib.indiana.edu
 search?qt=hotseries&q=se%3a%22rutgers+films+in+print%22^$boost=2,site=worldcat.org
 
-! Source: Wikipedia:WikiProject_Albums/Sources
-/1/2/3/4$boost=boost number,site=domain
-$boost=2,site=abc.net.au
+! Source: Wikipedia:WikiProject_Albums/Sources$boost=2,site=abc.net.au
 triplej/default.htm^$boost=2,site=abc.net.au
 entertainment/#s6^$boost=2,site=about.com
 $boost=2,site=absolutepunk.net
@@ -1689,7 +1687,7 @@ $boost=2,site=djmag.com
 $boost=2,site=downbeat.com
 $boost=2,site=drownedinsound.com
 $boost=2,site=dummymag.com
-$boost=2,site=ekmag.com:80
+$boost=2,site=ekmag.com
 $boost=2,site=em.oxfordjournals.org
 $boost=2,site=ew.com
 ew/music^$boost=2,site=ew.com
@@ -1718,7 +1716,7 @@ $boost=2,site=inrock.ru
 archieve^$boost=2,site=inrock.ru
 english^$boost=2,site=inrock.ru
 nh7-weekender^$boost=2,site=insider.in
-reggaereport/docs^$boost=2,site=issuu.com:443
+reggaereport/docs^$boost=2,site=issuu.com
 $boost=2,site=jam.canoe.ca
 gleaner/ent^$boost=2,site=jamaica-gleaner.com
 entertainment/music^$boost=2,site=jamaicaobserver.com
@@ -1880,7 +1878,7 @@ web/20061124000906/playlouder.com/review^$boost=2,site=web.archive.org
 web/20140228131513*/sonic-seducer.de^$boost=2,site=web.archive.org
 web/20180522025206^$boost=2,site=web.archive.org
 web/20201123160504^$boost=2,site=web.archive.org
-consumable/consumable.html^$boost=2,site=westnet.com:80
+consumable/consumable.html^$boost=2,site=westnet.com
 $boost=2,site=wonderingsound.com
 $boost=2,site=xxlmag.com
 user/officialexploremusic^$boost=2,site=youtube.com
@@ -1899,12 +1897,12 @@ $discard,site=dailymail.co.uk
 $discard,site=dailystar.co.uk
 $discard,site=discogs.com
 $discard,site=djbooth.net
+$discard,site=en.asiatoday.co.kr
 $discard,site=epinions.com
 $discard,site=firestream.net
 $discard,site=forbes.com
 $discard,site=grande-rock.com
 $discard,site=headlineplanet.com
-en.asiatoday.co.kr^$discard,site=http:
 $discard,site=huffpost.com
 $discard,site=ibtimes.com
 $discard,site=imdb.com
@@ -2010,9 +2008,7 @@ $discard,site=sketchthejournalist.blogspot.com
 $discard,site=thewhippingpost.tripod.com
 $discard,site=www.theworshipcommunity.com
 
-! Source: Wikipedia:WikiProject_Professional_wrestling/Sources
-/1/2/3/4$boost=boost number,site=domain
-$boost=2,site=baltimoresun.com
+! Source: Wikipedia:WikiProject_Professional_wrestling/Sources$boost=2,site=baltimoresun.com
 sports/pro-wrestling^$boost=2,site=baltimoresun.com
 $boost=2,site=boxylucha.com
 $boost=2,site=cagematch.net
@@ -2133,9 +2129,7 @@ $discard,site=wrestlingrumors.net
 $discard,site=wzronline.com
 wwe^$discard,site=yardbarker.com
 
-! Source: Wikipedia:WikiProject_Korea/Reliable_sources
-/1/2/3/4$boost=boost number,site=domain
-top/index.do^$boost=2,site=100.daum.net
+! Source: Wikipedia:WikiProject_Korea/Reliable_sourcestop/index.do^$boost=2,site=100.daum.net
 $boost=2,site=billboard.com
 $boost=2,site=biztribune.co.kr
 $boost=2,site=bntnews.co.uk
@@ -2343,7 +2337,7 @@ $boost=2,site=blackandwhiteindia.com
 $boost=2,site=blogs.nytimes.com
 $boost=2,site=bloomberg.com
 $boost=2,site=bnf.fr
-$boost=2,site=books.google.*
+$boost=2,site=books.google.com
 $boost=2,site=boston.com
 $boost=2,site=bostonathenaeum.org
 $boost=2,site=boxingnews24.com
@@ -3532,7 +3526,6 @@ $boost=2,site=bmj.com
 $boost=2,site=boeing.com
 $boost=2,site=bollywoodhungama.com
 $boost=2,site=bom.gov.au
-$boost=2,site=books.google.*
 $boost=2,site=boosey.com
 $boost=2,site=boston.com
 $boost=2,site=bostonglobe.com
