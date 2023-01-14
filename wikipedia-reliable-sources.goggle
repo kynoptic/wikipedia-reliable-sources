@@ -179,8 +179,8 @@ $downrank=2,site=dailydot.com
 $downrank=2,site=democracynow.org
 $downrank=2,site=entrepreneur.com
 $downrank=2,site=fair.org
-science$downrank=2,site=foxnews.com
-politics$downrank=2,site=foxnews.com
+/*science^$downrank=2,site=foxnews.com
+/*politics^$downrank=2,site=foxnews.com
 $downrank=2,site=genius.com
 $downrank=2,site=geonames.nga.mil
 $downrank=2,site=guinnessworldrecords.com
@@ -247,7 +247,7 @@ $downrank=2,site=theamericanconservative.com
 $downrank=2,site=thebalance.com
 $downrank=2,site=thedailybeast.com
 $downrank=2,site=thegreenpapers.com
-*blog^$downrank=2,site=theguardian.com
+/*blog^$downrank=2,site=theguardian.com
 $downrank=2,site=theneedledrop.com
 $downrank=2,site=thenextweb.com
 $downrank=2,site=thespruce.com
