@@ -4,13 +4,18 @@
 ! author: Wikipedia community
 
 ! Uses reliability ratings from:
-!      Wikipedia:Reliable_sources/Perennial_sources
-!      Wikipedia:WikiProject Video games/Sources
-! More sources may be added.
+!       Wikipedia:Reliable_sources/Perennial_sources
+!       WikiProject_Video_games/Sources, WikiProject_Video_games/Search_engine
+!       Wikipedia:WikiProject_Film/Resources
+!       Wikipedia:WikiProject_Albums/Sources
+!       Wikipedia:WikiProject_Christian_music/Sources
+!       Wikipedia:WikiProject_Professional_wrestling/Sources
+!       Wikipedia:WikiProject_Korea/Reliable_sources
+!       Sources often used in featured articles (FA) and good articles (FA)
 
-! $boost=2    – "Generally reliable" and "Reliable"
-! $downrank=2 – "No consensus"
-! $discard    – "Unreliable", "Blacklisted", "Deprecated"
+! $boost=2    - "Generally reliable" and "Reliable"
+! $downrank=2 - "No consensus"
+! $discard    - "Unreliable", "Blacklisted", "Deprecated"
 
 ! Source: Reliable_sources/Perennial_sources
 $boost=2,site=abcnews.com
@@ -1635,7 +1640,8 @@ fli^$boost=2,site=webapp1.dlib.indiana.edu
 fli/index.jsp^$boost=2,site=webapp1.dlib.indiana.edu
 search?qt=hotseries&q=se%3a%22rutgers+films+in+print%22^$boost=2,site=worldcat.org
 
-! Source: Wikipedia:WikiProject_Albums/Sources$boost=2,site=abc.net.au
+! Source: Wikipedia:WikiProject_Albums/Sources
+$boost=2,site=abc.net.au
 triplej/default.htm^$boost=2,site=abc.net.au
 entertainment/#s6^$boost=2,site=about.com
 $boost=2,site=absolutepunk.net
@@ -2009,7 +2015,8 @@ $discard,site=sketchthejournalist.blogspot.com
 $discard,site=thewhippingpost.tripod.com
 $discard,site=www.theworshipcommunity.com
 
-! Source: Wikipedia:WikiProject_Professional_wrestling/Sources$boost=2,site=baltimoresun.com
+! Source: Wikipedia:WikiProject_Professional_wrestling/Sources
+$boost=2,site=baltimoresun.com
 sports/pro-wrestling^$boost=2,site=baltimoresun.com
 $boost=2,site=boxylucha.com
 $boost=2,site=cagematch.net
@@ -2130,7 +2137,8 @@ $discard,site=wrestlingrumors.net
 $discard,site=wzronline.com
 wwe^$discard,site=yardbarker.com
 
-! Source: Wikipedia:WikiProject_Korea/Reliable_sourcestop/index.do^$boost=2,site=100.daum.net
+! Source: Wikipedia:WikiProject_Korea/Reliable_sources
+top/index.do^$boost=2,site=100.daum.net
 $boost=2,site=billboard.com
 $boost=2,site=biztribune.co.kr
 $boost=2,site=bntnews.co.uk
@@ -3368,7 +3376,8 @@ $boost=2,site=yale.edu
 $boost=2,site=yalnews.com
 $boost=2,site=yesmagazine.org
 $boost=2,site=zdnet.com
-Source: Sources used in featured articles (FA) and good articles (FA)
+
+! Source: Sources often used in featured articles (FA) and good articles (FA)
 $boost=2,site=911digitalarchive.org
 $boost=2,site=aafp.org
 $boost=2,site=aanda.org
