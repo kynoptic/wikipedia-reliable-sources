@@ -1,4 +1,4 @@
-# Wikipedia reliable sources Goggles
+# Wikipedia Goggles
 
 This repository hosts two [Brave Search Goggles](https://github.com/brave/goggles-quickstart) that reranks search results to promote sources considered reliable by the Wikipedia community:
 
