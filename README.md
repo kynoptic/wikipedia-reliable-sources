@@ -1,13 +1,9 @@
-# Wikipedia reliable sources Goggles for Brave search
+# Wikipedia reliable sources Goggles
 
-This repository hosts two Goggle files that enhance the search experience on Brave Search by utilizing Wikipedia's reliability ratings:
+This repository hosts two [Brave Search Goggles](https://github.com/brave/goggles-quickstart) that reranks search results to promote sources considered reliable by the Wikipedia community:
 
-1. **`wikipedia-reliable-sources-only.goggle`** – This file boosts reliable sources and downranks contentious ones, showing no other results. [Search using this Goggle](https://search.brave.com/goggles?goggles_id=https%253A%252F%252Fraw.githubusercontent.com%252Fkynoptic%252Fwikipedia-reliable-sources%252Fmain%252Fwikipedia-reliable-sources-only.goggle).
+1. **`wikipedia-reliable-sources-only.goggle`** – Boosts reliable sources and downranks contentious ones, showing no other results. [Search using this Goggle](https://search.brave.com/goggles?goggles_id=https%253A%252F%252Fraw.githubusercontent.com%252Fkynoptic%252Fwikipedia-reliable-sources%252Fmain%252Fwikipedia-reliable-sources-only.goggle).
 2. **`wikipedia-reliable-sources.goggle`** – Similar to the first, but it allows additional sources while discarding those deemed unreliable. [Search using this Goggle](https://search.brave.com/goggles?goggles_id=https%3A%2F%2Fraw.githubusercontent.com%2Fkynoptic%2Fwikipedia-reliable-sources%2Fmain%2Fwikipedia-reliable-sources.goggle).
-
-## About Goggles
-
-Goggles are an innovative feature of Brave Search, enabling users to choose, modify, or enhance the ranking of search results. They provide a transparent and customizable means to refine your search experience.
 
 ## Reliability sources
 
