@@ -11,7 +11,7 @@
 !       Wikipedia:WikiProject_Christian_music/Sources
 !       Wikipedia:WikiProject_Professional_wrestling/Sources
 !       Wikipedia:WikiProject_Korea/Reliable_sources
-!       Sources often used in featured articles (FA) and good articles (FA)
+!       Sources often used in featured articles (FA) and good articles (GA)
 
 ! $boost=2    - "Generally reliable" and "Reliable"
 ! $downrank=2 - "No consensus"
@@ -3377,7 +3377,7 @@ $boost=2,site=yalnews.com
 $boost=2,site=yesmagazine.org
 $boost=2,site=zdnet.com
 
-! Source: Sources often used in featured articles (FA) and good articles (FA)
+! Source: Sources often used in featured articles (FA) and good articles (GA)
 $boost=2,site=911digitalarchive.org
 $boost=2,site=aafp.org
 $boost=2,site=aanda.org
