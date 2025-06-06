@@ -3,10 +3,15 @@
 from pathlib import Path
 import json
 from collections import Counter, defaultdict
-from .utils.normalize_url import canonicalize_url, NormalizationConfig
+from .utils.normalize_url import (
+    canonicalize_url,
+    NormalizationConfig,
+    load_aliases,
+)
 
 
 ndefault_config = NormalizationConfig()
+DEFAULT_ALIAS_PATH = Path("data/alias_map.json")
 
 
 def load_refs(path: Path) -> list:
@@ -42,9 +47,31 @@ def save_sources(data: list, path: Path) -> None:
         writer.writerows(data)
 
 
+def load_alias_map(path: Path = DEFAULT_ALIAS_PATH) -> dict:
+    """Load alias mapping from JSON."""
+    return load_aliases(path)
+
+
+def rank_sources(data: list, limit: int = 50) -> list:
+    """Return sources sorted by total count descending."""
+    ranked = sorted(data, key=lambda r: r["total_count"], reverse=True)
+    return ranked[:limit]
+
+
 if __name__ == "__main__":
     refs_path = Path("data/processed/refs_extracted.json")
-    output_path = Path("data/processed/sources_canonical.csv")
+    canonical_path = Path("data/processed/sources_canonical.csv")
+    top_path = Path("outputs/top_sources.csv")
+
+    alias_map = load_alias_map()
+    config = NormalizationConfig(aliases=alias_map)
+
     refs = load_refs(refs_path)
-    cleaned = clean_refs(refs)
-    save_sources(cleaned, output_path)
+    cleaned = clean_refs(refs, config)
+
+    canonical_path.parent.mkdir(parents=True, exist_ok=True)
+    top_path.parent.mkdir(parents=True, exist_ok=True)
+
+    save_sources(cleaned, canonical_path)
+    top = rank_sources(cleaned)
+    save_sources(top, top_path)
