@@ -5,7 +5,7 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 
 ---
 
-### ✅ Phase 1: Discovery and scoping
+### ✅ Discovery and scoping
 
 **Goal**: Understand the structure and format of the Wikipedia page.
 
@@ -18,7 +18,7 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 
 ---
 
-### 🧪 Phase 2: Fetching raw content
+### 🧪 Fetching raw content
 
 **Option A – Wikitext (recommended for flexibility):**
 
@@ -47,7 +47,7 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 
 ---
 
-### 🏗️ Phase 3: Parse tables into structured records
+### 🏗️ Parse tables into structured records
 
 **Goal**: Convert each wikitable row into a Python dict (or class object).
 
@@ -67,7 +67,7 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 
 ---
 
-### 🧹 Phase 4: Clean and validate data
+### 🧹 Clean and validate data
 
 * [x] Ensure consistency in field values (e.g., normalize "generally reliable", "deprecated").
 * [x] Deduplicate if needed.
@@ -75,7 +75,7 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 
 ---
 
-### 💾 Phase 5: Export and reuse
+### 💾 Export and reuse
 
 * [x] Output to:
 
@@ -85,7 +85,7 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 
 ---
 
-### 🧪 Phase 6 (Optional): Update checker
+### 🧪 Update checker (optional)
 
 If you want to keep the data fresh:
 
@@ -108,7 +108,7 @@ If you want to keep the data fresh:
 
 ---
 
-### 📦 Phase 7: Modular citation normalization pipeline
+### 📦 Modular citation normalization pipeline
 
 Build a configurable pipeline that turns raw citation data into canonical source counts.
 
