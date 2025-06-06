@@ -79,3 +79,10 @@ has changed since the last run, the script re-fetches the tables and updates
 ```bash
 python scripts/update_checker.py
 ```
+
+## Citation normalization pipeline
+
+The project now includes scaffolding for a modular citation analysis workflow.
+Raw article lists and wikitext should be stored under `data/raw/`. After
+extracting references, run `src/clean_sources.py` to normalize source URLs and
+produce canonical counts in `data/processed/sources_canonical.csv`.
