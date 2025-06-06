@@ -108,6 +108,18 @@ If you want to keep the data fresh:
 
 ---
 
+### 📦 Phase 7: Modular citation normalization pipeline
+
+Build a configurable pipeline that turns raw citation data into canonical source counts.
+
+**Tasks**:
+* Organize the project with a clear directory structure under `src/`, `data/`, and `outputs/`.
+* Implement URL normalization logic in `src/utils/normalize_url.py` with support for alias mapping and query stripping.
+* Process extracted references in `clean_sources.py` to count total and unique citations per source.
+* Output `sources_canonical.csv` and `top_sources.csv` summarizing the results.
+
+---
+
 ### 🧠 Stretch goals (optional)
 
 * Detect and flag disputed sources.
