@@ -49,7 +49,6 @@ array where each object has the following fields:
 | `source_name` | Name of the publication or website. |
 | `reliability_status` | Two letter code from the `WP:RSPSTATUS` legend (e.g. `gr` = generally reliable, `gu` = generally unreliable, `nc` = no consensus, `d` = deprecated, `m` = marginal). |
 | `notes` | Summary of discussions about the source. |
-| `applies_to` | Any topical restrictions noted in the table. |
 
 Example entry:
 
@@ -58,8 +57,7 @@ Example entry:
   {
     "source_name": "ABC News (US)",
     "reliability_status": "gr",
-    "notes": "There is consensus that ABC News, the news division of the American Broadcasting Company, is generally reliable. It is not to be confused with other publications of the same name.",
-    "applies_to": ""
+    "notes": "There is consensus that ABC News, the news division of the American Broadcasting Company, is generally reliable. It is not to be confused with other publications of the same name."
   }
 ]
 ```

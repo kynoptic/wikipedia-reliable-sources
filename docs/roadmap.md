@@ -57,7 +57,6 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
   * `source_name`
   * `reliability_status` (e.g. "generally unreliable")
   * `notes` (remove formatting)
-  * `applies_to` (e.g. "politics", "science")
 
 **Tips**:
 
