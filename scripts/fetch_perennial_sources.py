@@ -41,7 +41,6 @@ class SourceEntry:
     source_name: str
     reliability_status: Optional[str] = None
     notes: Optional[str] = None
-    applies_to: Optional[str] = None
 
 
 def clean_source_name(name: str) -> str:
@@ -124,7 +123,7 @@ def _split_cells(row: str) -> List[str]:
 def parse_row(row: str) -> SourceEntry:
     """Parse a single wikitext table row into :class:`SourceEntry`."""
     cells = _split_cells(row)
-    if len(cells) < 6:
+    if len(cells) < 5:
         raise ValueError("unexpected row structure")
 
     source_name = mwparserfromhell.parse(cells[0]).strip_code().strip()
@@ -135,13 +134,11 @@ def parse_row(row: str) -> SourceEntry:
         reliability_status = param.strip_code().strip()
 
     notes = mwparserfromhell.parse(cells[4]).strip_code().strip()
-    applies_to = mwparserfromhell.parse(cells[5]).strip_code().strip()
 
     return SourceEntry(
         source_name=source_name,
         reliability_status=reliability_status,
         notes=notes,
-        applies_to=applies_to,
     )
 
 
@@ -170,7 +167,7 @@ def save_to_csv(entries: List[SourceEntry], path: str) -> None:
     with open(path, "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(
             fh,
-            fieldnames=["source_name", "reliability_status", "notes", "applies_to"],
+            fieldnames=["source_name", "reliability_status", "notes"],
         )
         writer.writeheader()
         for e in entries:
