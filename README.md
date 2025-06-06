@@ -68,3 +68,14 @@ Example entry:
 
 The script also writes a `perennial_sources.csv` file with the same fields for
 easy spreadsheet analysis.
+
+## Checking for updates
+
+Run `scripts/update_checker.py` periodically. It compares the current revision
+IDs of the perennial sources subpages against `revision_ids.json`. If any page
+has changed since the last run, the script re-fetches the tables and updates
+`perennial_sources.json` and `perennial_sources.csv`.
+
+```bash
+python scripts/update_checker.py
+```
