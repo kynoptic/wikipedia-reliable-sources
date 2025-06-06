@@ -35,3 +35,9 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 * Build a web API to serve structured data.
 * Map source domains to categories or political leanings.
 * Integrate with a citation checker.
+
+## Maintenance
+
+* [x] Document contributor guidelines in `AGENTS.md`.
+* [ ] Expand test coverage for new modules.
+* [ ] Set up continuous integration to run tests automatically.
