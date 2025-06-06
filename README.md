@@ -80,10 +80,32 @@ python scripts/update_checker.py
 
 ## Citation normalization pipeline
 
-The project now includes scaffolding for a modular citation analysis workflow.
-Raw article lists and wikitext should be stored under `data/raw/`. After
-extracting references, run `python -m src.clean_sources` to normalize source
-URLs. The script reads `data/processed/refs_extracted.json`, applies domain
-aliases from `data/alias_map.json`, and writes canonical counts to
-`data/processed/sources_canonical.csv`. The most cited sources are also written
-to `outputs/top_sources.csv`.
+The project now includes a modular workflow for gathering citation data and normalizing source URLs.
+
+1. **Fetch article lists**
+
+   ```bash
+   python -m src.fetch_articles
+   ```
+   This writes `good_articles.json` and `featured_articles.json` under `data/raw/`.
+
+2. **Download wikitext for each article**
+
+   ```bash
+   python -m src.fetch_wikitext
+   ```
+   Wikitext files are stored in `data/raw/wikitext/`.
+
+3. **Extract citation URLs**
+
+   ```bash
+   python -m src.extract_refs
+   ```
+   The extracted references are written to `data/processed/refs_extracted.json`.
+
+4. **Normalize and rank sources**
+
+   ```bash
+   python -m src.clean_sources
+   ```
+   The script applies domain aliases from `data/alias_map.json`, writes canonical counts to `data/processed/sources_canonical.csv`, and outputs the top sources to `outputs/top_sources.csv`.
