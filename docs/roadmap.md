@@ -22,7 +22,7 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 
 **Option A – Wikitext (recommended for flexibility):**
 
-* Use MediaWiki API:
+* [x] Use MediaWiki API:
 
   ```http
   GET https://en.wikipedia.org/w/api.php?action=query&format=json&prop=revisions&rvprop=content&titles=Wikipedia:Reliable_sources/Perennial_sources
@@ -30,12 +30,12 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 
 * Tooling:
 
-  * Use `requests` (or similar HTTP client).
-  * Use `mwparserfromhell` to parse the returned wikitext into a usable format.
+  * [x] Use `requests` (or similar HTTP client).
+  * [x] Use `mwparserfromhell` to parse the returned wikitext into a usable format.
 
 **Option B – Rendered HTML:**
 
-* Use Wikipedia REST API:
+* [ ] Use Wikipedia REST API:
 
   ```http
   GET https://en.wikipedia.org/api/rest_v1/page/html/Wikipedia:Reliable_sources/Perennial_sources
@@ -43,7 +43,7 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 
 * Tooling:
 
-  * Use `requests` + `BeautifulSoup` to parse `<table class="wikitable">`.
+  * [ ] Use `requests` + `BeautifulSoup` to parse `<table class="wikitable">`.
 
 ---
 
@@ -89,20 +89,20 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 
 If you want to keep the data fresh:
 
-* [ ] Check for page edits via MediaWiki API `action=query&prop=revisions`.
-* [ ] If last revision ID differs, re-fetch and update.
+* [x] Check for page edits via MediaWiki API `action=query&prop=revisions`.
+* [x] If last revision ID differs, re-fetch and update.
 
 ---
 
 ### 📘 Deliverables
 
-* Python script or module:
+* [x] Python script or module:
 
   * `fetch_perennial_sources.py` or similar.
-* Output:
+* [x] Output:
 
   * `perennial_sources.json` or `perennial_sources.csv`
-* README:
+* [x] README:
 
   * Instructions to run, dependencies, data fields description.
 
@@ -113,10 +113,10 @@ If you want to keep the data fresh:
 Build a configurable pipeline that turns raw citation data into canonical source counts.
 
 **Tasks**:
-* Organize the project with a clear directory structure under `src/`, `data/`, and `outputs/`.
-* Implement URL normalization logic in `src/utils/normalize_url.py` with support for alias mapping and query stripping.
-* Process extracted references in `clean_sources.py` to count total and unique citations per source.
-* Output `sources_canonical.csv` and `top_sources.csv` summarizing the results.
+* [x] Organize the project with a clear directory structure under `src/`, `data/`, and `outputs/`.
+* [x] Implement URL normalization logic in `src/utils/normalize_url.py` with support for alias mapping and query stripping.
+* [x] Process extracted references in `clean_sources.py` to count total and unique citations per source.
+* [x] Output `sources_canonical.csv` and `top_sources.csv` summarizing the results.
 
 ---
 
