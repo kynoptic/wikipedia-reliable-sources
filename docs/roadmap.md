@@ -116,6 +116,9 @@ Build a configurable pipeline that turns raw citation data into canonical source
 * [x] Implement URL normalization logic in `src/utils/normalize_url.py` with support for alias mapping and query stripping.
 * [x] Process extracted references in `clean_sources.py` to count total and unique citations per source.
 * [x] Output `sources_canonical.csv` and `top_sources.csv` summarizing the results.
+* [x] Fetch lists of featured and good articles.
+* [x] Download article wikitext using the MediaWiki API.
+* [x] Extract citation URLs from wikitext files.
 
 ---
 
