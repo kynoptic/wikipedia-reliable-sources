@@ -31,8 +31,6 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 
   * [ ] Use `requests` + `BeautifulSoup` to parse `<table class="wikitable">`.
 
-## 🧠 Stretch goals (optional)
-
 * Detect and flag disputed sources.
 * Build a web API to serve structured data.
 * Map source domains to categories or political leanings.
