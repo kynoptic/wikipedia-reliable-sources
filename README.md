@@ -26,3 +26,13 @@ The reliability ratings are adjusted using the following parameters:
 - `$boost=2` – Applied to sources considered "Generally reliable" or "Reliable"
 - `$downrank=2` – Used for sources labeled with "No consensus"
 - `$discard` – Assigned to sources determined as "Unreliable," "Blacklisted," or "Deprecated"
+
+## Extracting perennial sources
+
+Run `scripts/fetch_perennial_sources.py` to download and parse the perennial
+sources list from Wikipedia. The script outputs a `perennial_sources.json` file
+containing structured records.
+
+```bash
+python scripts/fetch_perennial_sources.py
+```
