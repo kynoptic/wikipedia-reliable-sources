@@ -84,5 +84,8 @@ python scripts/update_checker.py
 
 The project now includes scaffolding for a modular citation analysis workflow.
 Raw article lists and wikitext should be stored under `data/raw/`. After
-extracting references, run `src/clean_sources.py` to normalize source URLs and
-produce canonical counts in `data/processed/sources_canonical.csv`.
+extracting references, run `python -m src.clean_sources` to normalize source
+URLs. The script reads `data/processed/refs_extracted.json`, applies domain
+aliases from `data/alias_map.json`, and writes canonical counts to
+`data/processed/sources_canonical.csv`. The most cited sources are also written
+to `outputs/top_sources.csv`.

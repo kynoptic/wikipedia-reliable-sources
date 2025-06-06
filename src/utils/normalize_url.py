@@ -1,14 +1,19 @@
-"""Utility functions for normalizing citation URLs."""
+"""Utility helpers for normalizing citation URLs."""
 
 from dataclasses import dataclass
+from pathlib import Path
 from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
+import json
 
 @dataclass
 class NormalizationConfig:
+    """Configuration options for URL canonicalization."""
+
     strip_www: bool = True
     strip_subdomain: bool = True
     include_path: bool = False
-    strip_query_params: bool = True
+    # bool removes all query params, list removes specific ones
+    strip_query_params: bool | list[str] = True
     aliases: dict | None = None
 
 
@@ -18,6 +23,17 @@ def strip_subdomain(hostname: str) -> str:
     if len(parts) > 2:
         return '.'.join(parts[-2:])
     return hostname
+
+
+def load_aliases(path: Path) -> dict:
+    """Load a domain alias map from a JSON file if it exists."""
+    if not path.exists():
+        return {}
+    with path.open() as f:
+        try:
+            return json.load(f)
+        except json.JSONDecodeError:
+            return {}
 
 
 def canonicalize_url(url: str, config: NormalizationConfig) -> str:
@@ -36,9 +52,18 @@ def canonicalize_url(url: str, config: NormalizationConfig) -> str:
         host = config.aliases[host]
 
     path = parsed.path if config.include_path else ''
-    query = ''
-    if not config.strip_query_params:
-        query = urlencode(parse_qsl(parsed.query))
+    query = parsed.query
+    if config.strip_query_params is True:
+        query = ''
+    elif isinstance(config.strip_query_params, list):
+        qs = [
+            (k, v)
+            for k, v in parse_qsl(parsed.query, keep_blank_values=True)
+            if k not in config.strip_query_params
+        ]
+        query = urlencode(sorted(qs))
+    else:
+        query = urlencode(sorted(parse_qsl(parsed.query, keep_blank_values=True)))
 
     canon = urlunparse((parsed.scheme, host, path, '', query, ''))
     return canon.lower()

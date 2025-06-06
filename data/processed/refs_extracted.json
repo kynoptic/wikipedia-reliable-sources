@@ -1,0 +1,6 @@
+[
+  {"article": "Article1", "url": "https://www.nyti.ms/example?utm_source=tw"},
+  {"article": "Article1", "url": "https://nytimes.com/example"},
+  {"article": "Article2", "url": "https://nyti.ms/other?ref=1"},
+  {"article": "Article2", "url": "https://example.com/?a=1"}
+]
