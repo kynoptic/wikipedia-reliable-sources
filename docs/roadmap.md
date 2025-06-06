@@ -51,8 +51,8 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 
 **Goal**: Convert each wikitable row into a Python dict (or class object).
 
-* [ ] Extract rows from each table.
-* [ ] Parse individual cells into structured fields:
+* [x] Extract rows from each table.
+* [x] Parse individual cells into structured fields:
 
   * `source_name`
   * `reliability_status` (e.g. "generally unreliable")
@@ -69,15 +69,15 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 
 ### 🧹 Phase 4: Clean and validate data
 
-* [ ] Ensure consistency in field values (e.g., normalize "generally reliable", "deprecated").
-* [ ] Deduplicate if needed.
-* [ ] Validate against a few test entries manually.
+* [x] Ensure consistency in field values (e.g., normalize "generally reliable", "deprecated").
+* [x] Deduplicate if needed.
+* [x] Validate against a few test entries manually.
 
 ---
 
 ### 💾 Phase 5: Export and reuse
 
-* [ ] Output to:
+* [x] Output to:
 
   * `JSON` for API or frontend use.
   * `CSV` for analysis.

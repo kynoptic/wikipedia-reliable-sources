@@ -1,15 +1,18 @@
 """Utilities for working with Wikipedia's Perennial sources page.
 
-This implements phases 1–3 of ``docs/roadmap.md``:
+This implements phases 1–5 of ``docs/roadmap.md``:
 
 * Fetch raw wikitext for each Perennial sources subpage via the MediaWiki API.
 * Parse the wikitables into structured :class:`SourceEntry` records.
-* Provide a small CLI to output the resulting list as JSON.
+* Clean and validate the resulting data.
+* Provide a small CLI to output the list as JSON and CSV files.
 """
 
 from __future__ import annotations
 
+import csv
 import json
+import re
 from dataclasses import dataclass, asdict
 from typing import List, Optional
 
@@ -19,12 +22,61 @@ import mwparserfromhell
 MEDIAWIKI_API = "https://en.wikipedia.org/w/api.php"
 BASE_TITLE = "Wikipedia:Reliable_sources/Perennial_sources"
 
+# Map long-form reliability statuses to the short codes used in WP:RSPSTATUS
+STATUS_MAP = {
+    "generally reliable": "gr",
+    "reliable": "gr",
+    "generally unreliable": "gu",
+    "unreliable": "gu",
+    "no consensus": "nc",
+    "deprecated": "d",
+    "blacklisted": "d",
+    "marginally reliable": "m",
+}
+
+_SORT_RE = re.compile(r'data-sort-value="[^"]*"\s*\|\s*')
+
 @dataclass
 class SourceEntry:
     source_name: str
     reliability_status: Optional[str] = None
     notes: Optional[str] = None
     applies_to: Optional[str] = None
+
+
+def clean_source_name(name: str) -> str:
+    """Remove table sorting metadata and trim whitespace."""
+    name = _SORT_RE.sub("", name)
+    return name.strip()
+
+
+def clean_entries(entries: List[SourceEntry]) -> List[SourceEntry]:
+    """Normalize field values and remove duplicates."""
+    cleaned: List[SourceEntry] = []
+    seen = set()
+    for e in entries:
+        e.source_name = clean_source_name(e.source_name)
+        if e.reliability_status:
+            key = e.reliability_status.lower()
+            e.reliability_status = STATUS_MAP.get(key, key)
+        key = e.source_name.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        cleaned.append(e)
+    return cleaned
+
+
+def validate_entries(entries: List[SourceEntry]) -> None:
+    """Check a few well-known sources to catch parsing issues."""
+    checks = {
+        "ABC News (US)": "gr",
+        "Daily Mail (MailOnline)": "d",
+    }
+    for name, status in checks.items():
+        match = next((e for e in entries if e.source_name == name), None)
+        if not match or match.reliability_status != status:
+            raise ValueError(f"Validation failed for {name}")
 
 
 def fetch_subpage(title: str) -> str:
@@ -113,11 +165,26 @@ def save_to_json(entries: List[SourceEntry], path: str) -> None:
         json.dump([asdict(e) for e in entries], fh, ensure_ascii=False, indent=2)
 
 
+def save_to_csv(entries: List[SourceEntry], path: str) -> None:
+    """Write extracted entries to a CSV file."""
+    with open(path, "w", newline="", encoding="utf-8") as fh:
+        writer = csv.DictWriter(
+            fh,
+            fieldnames=["source_name", "reliability_status", "notes", "applies_to"],
+        )
+        writer.writeheader()
+        for e in entries:
+            writer.writerow(asdict(e))
+
+
 def main() -> None:
-    """Fetch the perennial sources tables and write them to JSON."""
+    """Fetch the perennial sources tables and write them to JSON and CSV."""
     entries = fetch_all()
+    entries = clean_entries(entries)
+    validate_entries(entries)
     print(f"Fetched {len(entries)} sources")
     save_to_json(entries, "perennial_sources.json")
+    save_to_csv(entries, "perennial_sources.csv")
 
 
 if __name__ == "__main__":
