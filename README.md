@@ -30,8 +30,9 @@ The reliability ratings are adjusted using the following parameters:
 ## Extracting perennial sources
 
 Run `scripts/fetch_perennial_sources.py` to download and parse the perennial
-sources list from Wikipedia. The script outputs a `perennial_sources.json` file
-containing structured records.
+sources list from Wikipedia. The script cleans and validates the data then
+writes `perennial_sources.json` and `perennial_sources.csv` containing
+structured records.
 
 ```bash
 python scripts/fetch_perennial_sources.py
@@ -62,3 +63,8 @@ Example entry:
   }
 ]
 ```
+
+### CSV output
+
+The script also writes a `perennial_sources.csv` file with the same fields for
+easy spreadsheet analysis.
