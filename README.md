@@ -36,3 +36,29 @@ containing structured records.
 ```bash
 python scripts/fetch_perennial_sources.py
 ```
+
+### JSON output
+
+Running the script prints the number of parsed entries (for example,
+`Fetched 485 sources`) and writes `perennial_sources.json`.  The file is a JSON
+array where each object has the following fields:
+
+| Field | Description |
+|-------|-------------|
+| `source_name` | Name of the publication or website. |
+| `reliability_status` | Two letter code from the `WP:RSPSTATUS` legend (e.g. `gr` = generally reliable, `gu` = generally unreliable, `nc` = no consensus, `d` = deprecated, `m` = marginal). |
+| `notes` | Summary of discussions about the source. |
+| `applies_to` | Any topical restrictions noted in the table. |
+
+Example entry:
+
+```json
+[
+  {
+    "source_name": "ABC News (US)",
+    "reliability_status": "gr",
+    "notes": "There is consensus that ABC News, the news division of the American Broadcasting Company, is generally reliable. It is not to be confused with other publications of the same name.",
+    "applies_to": ""
+  }
+]
+```
