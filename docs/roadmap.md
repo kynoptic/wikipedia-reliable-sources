@@ -42,7 +42,6 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 * [ ] Add integration tests for update workflow.
 * [x] Expand test coverage for new modules.
 * [x] Document how to run tests in `README.md`.
-* [x] Expand test coverage for new modules.
 * [ ] Set up continuous integration to run tests automatically.
 * [x] Standardize default config constant naming.
 * [x] Add custom User-Agent to all API requests.
