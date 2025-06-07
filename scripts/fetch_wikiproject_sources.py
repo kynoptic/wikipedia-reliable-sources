@@ -46,10 +46,23 @@ def fetch_page(title: str) -> str:
 
 
 def _status_from_heading(text: str) -> Optional[str]:
+    """Return the reliability code if the heading text matches a status."""
     text = text.lower()
-    for key, value in STATUS_MAP.items():
+    # Check longer phrases first to avoid matching "reliable" inside
+    # "unreliable" headings.
+    order = [
+        "generally unreliable",
+        "unreliable",
+        "generally reliable",
+        "reliable",
+        "no consensus",
+        "deprecated",
+        "blacklisted",
+        "marginally reliable",
+    ]
+    for key in order:
         if key in text:
-            return value
+            return STATUS_MAP.get(key)
     return None
 
 
@@ -66,7 +79,7 @@ def parse_page(wikitext: str) -> List[SourceEntry]:
         elif isinstance(node, mwparserfromhell.nodes.tag.Tag) and node.tag == "table":
             for row in node.contents.filter_tags(matches=lambda t: t.tag == "tr"):
                 cells = row.contents.filter_tags(matches=lambda t: t.tag in ("td", "th"))
-                if not cells or cells[0].tag == "th":
+                if not cells:
                     continue
                 text = cells[0].contents.strip_code().strip()
                 if text.lower() in {"name", "publication", "source"}:
