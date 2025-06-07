@@ -2,7 +2,10 @@
 
 ## 📌 Objective
 
-Programmatically extract and structure data from [Wikipedia:Reliable sources/Perennial sources](https://en.wikipedia.org/wiki/Wikipedia:Reliable_sources/Perennial_sources), converting it into a machine-readable format (e.g. JSON, CSV, or a database table) for downstream use.
+Programmatically extract and structure data from
+[Wikipedia:Reliable sources/Perennial sources](https://en.wikipedia.org/wiki/Wikipedia:Reliable_sources/Perennial_sources),
+converting it into a machine-readable format (e.g. JSON, CSV, or a database
+table) for downstream use.
 
 ## 🧪 Fetching raw content
 
@@ -51,3 +54,5 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 * [x] Improve docstrings and inline comments for clarity.
 * [x] Rename `src` directory to `core` and update imports.
 * [x] Add tests for article list fetching module.
+* [x] Add README files for data and configuration folders.
+* [ ] Add examples of API usage in documentation.
