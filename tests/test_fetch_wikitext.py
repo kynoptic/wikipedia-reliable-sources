@@ -27,7 +27,8 @@ def test_fetch_single(monkeypatch: Any) -> None:
         }
     }
 
-    def fake_get(url: str, params: dict, timeout: int = 10) -> DummyResponse:
+    def fake_get(url: str, params: dict, timeout: int = 10, headers: dict | None = None) -> DummyResponse:
+        assert headers == fw.HEADERS
         return DummyResponse(data)
 
     monkeypatch.setattr(fw.requests, "get", fake_get)

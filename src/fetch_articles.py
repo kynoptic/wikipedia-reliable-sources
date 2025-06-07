@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List
 
 import requests
+from scripts.common import HEADERS
 
 
 API_URL = "https://en.wikipedia.org/w/api.php"
@@ -23,7 +24,7 @@ def _fetch_category_members(category: str) -> List[str]:
     }
     titles: List[str] = []
     while True:
-        resp = requests.get(API_URL, params=params, timeout=10)
+        resp = requests.get(API_URL, params=params, timeout=10, headers=HEADERS)
         resp.raise_for_status()
         data = resp.json()
         members = data.get("query", {}).get("categorymembers", [])
