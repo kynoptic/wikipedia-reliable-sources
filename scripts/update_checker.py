@@ -15,7 +15,7 @@ from typing import Dict
 import requests
 from scripts.common import HEADERS
 
-from fetch_perennial_sources import (
+from scripts.fetch_perennial_sources import (
     BASE_TITLE,
     MEDIAWIKI_API,
     clean_entries,
