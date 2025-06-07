@@ -110,6 +110,12 @@ The project now includes a modular workflow for gathering citation data and norm
    ```
   The script applies domain aliases from `data/alias_map.json`, writes canonical counts to `data/processed/sources_canonical.csv`, and outputs the top sources to `outputs/top_sources.csv`.
 
+### Updating domain aliases
+
+Add new mappings in `data/alias_map.json` to normalize additional domains.
+Each entry maps a short hostname to its canonical form. These aliases are loaded
+by `src/clean_sources`, so updates affect how sources are deduplicated.
+
 ## Running tests
 
 Install the dependencies listed in `requirements.txt` and execute the test suite with `pytest`:
