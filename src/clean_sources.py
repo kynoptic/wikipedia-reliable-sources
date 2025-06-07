@@ -10,7 +10,7 @@ from .utils.normalize_url import (
 )
 
 
-ndefault_config = NormalizationConfig()
+DEFAULT_CONFIG = NormalizationConfig()
 DEFAULT_ALIAS_PATH = Path("data/alias_map.json")
 
 
@@ -21,7 +21,7 @@ def load_refs(path: Path) -> list:
         return json.load(f)
 
 
-def clean_refs(refs: list, config: NormalizationConfig = ndefault_config):
+def clean_refs(refs: list, config: NormalizationConfig = DEFAULT_CONFIG):
     total_counter = Counter()
     unique_per_article = defaultdict(set)
     for ref in refs:
