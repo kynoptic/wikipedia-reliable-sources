@@ -6,6 +6,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import scripts.update_checker as uc
+from scripts.fetch_perennial_sources import SourceEntry
 
 
 def test_regeneration_on_change(tmp_path: Path, monkeypatch: Any) -> None:
@@ -16,40 +17,25 @@ def test_regeneration_on_change(tmp_path: Path, monkeypatch: Any) -> None:
 
     monkeypatch.setattr(uc, "fetch_revision_id", lambda title: 2)
 
-    called = []
-    original_save = uc.save_revision_ids
+    entry = SourceEntry("Example", "gr", "note")
+    monkeypatch.setattr(uc, "fetch_all", lambda: [entry])
+    monkeypatch.setattr(uc, "clean_entries", lambda e: e)
+    monkeypatch.setattr(uc, "validate_entries", lambda e: None)
 
-    def fake_fetch_all() -> list:
-        called.append("fetch_all")
-        return []
+    json_path = tmp_path / "perennial_sources.json"
+    csv_path = tmp_path / "perennial_sources.csv"
+    json_path.write_text("old")
+    csv_path.write_text("old")
 
-    def fake_clean(entries: list) -> list:
-        called.append("clean_entries")
-        return entries
-
-    def fake_validate(entries: list) -> None:
-        called.append("validate_entries")
-
-    def fake_save_json(entries: list, path: str) -> None:
-        called.append("save_json")
-
-    def fake_save_csv(entries: list, path: str) -> None:
-        called.append("save_csv")
-
-    def fake_save_rev(ids: dict) -> None:
-        called.append("save_revision_ids")
-        original_save(ids)
-
-    monkeypatch.setattr(uc, "fetch_all", fake_fetch_all)
-    monkeypatch.setattr(uc, "clean_entries", fake_clean)
-    monkeypatch.setattr(uc, "validate_entries", fake_validate)
-    monkeypatch.setattr(uc, "save_to_json", fake_save_json)
-    monkeypatch.setattr(uc, "save_to_csv", fake_save_csv)
-    monkeypatch.setattr(uc, "save_revision_ids", fake_save_rev)
-
+    monkeypatch.chdir(tmp_path)
     uc.main()
 
-    assert "fetch_all" in called
-    assert "save_revision_ids" in called
-    data = json.loads(rev_file.read_text())
-    assert all(v == 2 for v in data.values())
+    ids = json.loads(rev_file.read_text())
+    assert all(v == 2 for v in ids.values())
+
+    data = json.loads(json_path.read_text())
+    assert data[0]["source_name"] == "Example"
+
+    csv_text = csv_path.read_text()
+    assert "source_name" in csv_text.splitlines()[0]
+    assert "Example" in csv_text
