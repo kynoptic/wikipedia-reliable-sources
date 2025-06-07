@@ -1,3 +1,4 @@
 requests
 mwparserfromhell
 beautifulsoup4
+pytest
