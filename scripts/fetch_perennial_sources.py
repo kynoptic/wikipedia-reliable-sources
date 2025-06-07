@@ -18,6 +18,7 @@ from typing import List, Optional
 
 import requests
 import mwparserfromhell
+from scripts.common import HEADERS
 
 MEDIAWIKI_API = "https://en.wikipedia.org/w/api.php"
 BASE_TITLE = "Wikipedia:Reliable_sources/Perennial_sources"
@@ -87,7 +88,7 @@ def fetch_subpage(title: str) -> str:
         "rvprop": "content",
         "titles": title,
     }
-    response = requests.get(MEDIAWIKI_API, params=params, timeout=30)
+    response = requests.get(MEDIAWIKI_API, params=params, timeout=30, headers=HEADERS)
     response.raise_for_status()
     data = response.json()
     pages = data.get("query", {}).get("pages", {})

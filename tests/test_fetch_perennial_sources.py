@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any
 
 import requests
+from scripts.common import HEADERS
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -21,7 +22,8 @@ def test_parse_row(monkeypatch: Any) -> None:
         "| Some ''notes'' here.\n"
     )
 
-    def fake_get(url: str, params: Any | None = None, timeout: int = 30) -> Any:
+    def fake_get(url: str, params: Any | None = None, timeout: int = 30, headers: dict | None = None) -> Any:
+        assert headers == HEADERS
         class Response:
             def raise_for_status(self) -> None:
                 pass
