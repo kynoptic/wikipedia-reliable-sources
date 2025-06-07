@@ -108,4 +108,15 @@ The project now includes a modular workflow for gathering citation data and norm
    ```bash
    python -m src.clean_sources
    ```
-   The script applies domain aliases from `data/alias_map.json`, writes canonical counts to `data/processed/sources_canonical.csv`, and outputs the top sources to `outputs/top_sources.csv`.
+  The script applies domain aliases from `data/alias_map.json`, writes canonical counts to `data/processed/sources_canonical.csv`, and outputs the top sources to `outputs/top_sources.csv`.
+
+## Running tests
+
+Install the dependencies listed in `requirements.txt` and execute the test suite with `pytest`:
+
+```bash
+pip install -r requirements.txt
+pytest
+```
+
+Contributors should run the tests before committing changes to ensure nothing breaks.
