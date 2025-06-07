@@ -96,10 +96,23 @@ def _parse_table(table_text: str, status: Optional[str]) -> List[SourceEntry]:
             continue
         name = clean_source_name(text)
         notes = mwparserfromhell.parse(cells[-1].contents).strip_code().strip()
+        row_status = status
+        if row_status is None:
+            class_attr = row.get("class") if row.has("class") else None
+            if class_attr:
+                class_value = str(class_attr.value)
+                if "ko-rel" in class_value:
+                    row_status = "gr"
+                elif "ko-unrel" in class_value:
+                    row_status = "gu"
+                elif "ko-nocon" in class_value:
+                    row_status = "nc"
+                elif "ko-b" in class_value:
+                    row_status = "d"
         result.append(
             SourceEntry(
                 source_name=name,
-                reliability_status=status,
+                reliability_status=row_status,
                 notes=notes,
             )
         )

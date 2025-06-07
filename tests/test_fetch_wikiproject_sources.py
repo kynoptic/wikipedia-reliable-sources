@@ -94,3 +94,21 @@ def test_parse_page_handles_numbered_lists() -> None:
     assert entry.source_name == "Bad Site"
     assert entry.reliability_status == "gu"
 
+
+def test_parse_page_class_based_status() -> None:
+    """Rows with reliability class attributes should set the status."""
+
+    wikitext = (
+        "{| class=\"wikitable\"\n"
+        "|- class=\"ko-unrel\"\n"
+        "| [[Foo Source]] || Some notes\n"
+        "|}\n"
+    )
+
+    entries = parse_page(wikitext)
+    assert len(entries) == 1
+    entry = entries[0]
+    assert entry.source_name == "Foo Source"
+    assert entry.reliability_status == "gu"
+    assert entry.notes == "Some notes"
+
