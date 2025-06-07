@@ -50,7 +50,15 @@ The long-term goal is to automatically fetch the Perennial Sources table, other 
     pytest
     ```
 
-## Coding guidelines
+## Markdown formatting conventions
+
+- Use backticks to wrap all:
+  - Filenames (e.g., `main.py`)
+  - Directories (e.g., `src/`)
+  - Code snippets, flags, and inline commands (e.g., `--help`)
+- Prefer fenced code blocks (` ``` `) for multi-line commands or examples
+
+## Code clarity and documentation standards
 
 - Follow PEP 8 style conventions
 - Include type hints and docstrings on all new Python code
