@@ -66,3 +66,31 @@ def test_parse_page_handles_row_headers() -> None:
     assert entry.source_name == "Bad Source"
     assert entry.reliability_status == "gu"
 
+
+def test_parse_page_extracts_bullet_entries() -> None:
+    wikitext = (
+        "==Reliable sources==\n"
+        "===Generally reliable===\n"
+        "* [[Foo Site]] \u2013 Example notes\n"
+    )
+
+    entries = parse_page(wikitext)
+    assert len(entries) == 1
+    entry = entries[0]
+    assert entry.source_name == "Foo Site"
+    assert entry.reliability_status == "gr"
+    assert entry.notes == "Example notes"
+
+
+def test_parse_page_handles_numbered_lists() -> None:
+    wikitext = (
+        "==Unreliable sources==\n"
+        "# [[Bad Site]] - info\n"
+    )
+
+    entries = parse_page(wikitext)
+    assert len(entries) == 1
+    entry = entries[0]
+    assert entry.source_name == "Bad Site"
+    assert entry.reliability_status == "gu"
+

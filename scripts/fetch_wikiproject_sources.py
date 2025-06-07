@@ -66,26 +66,76 @@ def _status_from_heading(text: str) -> Optional[str]:
     return None
 
 
+def _parse_bullet_line(line: str) -> tuple[str, str]:
+    """Return ``(name, notes)`` from a bullet line."""
+
+    text = line.lstrip("*#").strip()
+    dash_variants = [" – ", " -- ", " — ", " - ", "—", "–", "-"]
+    name_part = text
+    notes_part = ""
+    for dash in dash_variants:
+        if dash in text:
+            name_part, notes_part = text.split(dash, 1)
+            break
+    name = clean_source_name(mwparserfromhell.parse(name_part).strip_code().strip())
+    notes = mwparserfromhell.parse(notes_part).strip_code().strip()
+    return name, notes
+
+
+def _parse_table(table_text: str, status: Optional[str]) -> List[SourceEntry]:
+    """Return entries extracted from a wikitext table."""
+
+    code = mwparserfromhell.parse(table_text)
+    result: List[SourceEntry] = []
+    for row in code.filter_tags(matches=lambda t: t.tag == "tr"):
+        cells = row.contents.filter_tags(matches=lambda t: t.tag in ("td", "th"))
+        if not cells:
+            continue
+        text = cells[0].contents.strip_code().strip()
+        if text.lower() in {"name", "publication", "source"}:
+            continue
+        name = clean_source_name(text)
+        notes = mwparserfromhell.parse(cells[-1].contents).strip_code().strip()
+        result.append(
+            SourceEntry(
+                source_name=name,
+                reliability_status=status,
+                notes=notes,
+            )
+        )
+    return result
+
+
 def parse_page(wikitext: str) -> List[SourceEntry]:
-    """Parse wikitables on a WikiProject page into ``SourceEntry`` records."""
-    code = mwparserfromhell.parse(wikitext)
+    """Parse reliability tables and bullet/numbered lists from wikitext."""
+
     entries: List[SourceEntry] = []
     current_status: Optional[str] = None
-    for node in code.nodes:
-        if isinstance(node, mwparserfromhell.nodes.heading.Heading):
-            status = _status_from_heading(node.title.strip_code().strip())
+
+    lines = iter(wikitext.splitlines())
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("="):
+            heading = mwparserfromhell.parse(stripped).strip_code().strip()
+            status = _status_from_heading(heading)
             if status:
                 current_status = status
-        elif isinstance(node, mwparserfromhell.nodes.tag.Tag) and node.tag == "table":
-            for row in node.contents.filter_tags(matches=lambda t: t.tag == "tr"):
-                cells = row.contents.filter_tags(matches=lambda t: t.tag in ("td", "th"))
-                if not cells:
-                    continue
-                text = cells[0].contents.strip_code().strip()
-                if text.lower() in {"name", "publication", "source"}:
-                    continue
-                name = clean_source_name(text)
-                notes = mwparserfromhell.parse(cells[-1].contents).strip_code().strip()
+            continue
+
+        if stripped.startswith("{|"):
+            table_lines = [line]
+            for next_line in lines:
+                table_lines.append(next_line)
+                if next_line.strip().startswith("|}"):
+                    break
+            entries.extend(_parse_table("\n".join(table_lines), current_status))
+            continue
+
+        marker = stripped.lstrip("#:*")
+        prefix = stripped[: len(stripped) - len(marker)]
+        if prefix and prefix[0] in "*#":
+            name, notes = _parse_bullet_line(stripped)
+            if name:
                 entries.append(
                     SourceEntry(
                         source_name=name,
@@ -93,6 +143,7 @@ def parse_page(wikitext: str) -> List[SourceEntry]:
                         notes=notes,
                     )
                 )
+
     return entries
 
 
