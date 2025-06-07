@@ -18,7 +18,7 @@ def load_refs(path: Path) -> list:
     """Return a list of raw reference dicts from ``path``.
 
     The file is expected to contain JSON produced by
-    :func:`src.extract_refs.extract_references`. When the file does not exist
+    :func:`core.extract_refs.extract_references`. When the file does not exist
     an empty list is returned to simplify pipeline usage.
     """
     if not path.exists():
@@ -27,7 +27,9 @@ def load_refs(path: Path) -> list:
         return json.load(f)
 
 
-def clean_refs(refs: list, config: NormalizationConfig = DEFAULT_CONFIG) -> list:
+def clean_refs(
+    refs: list, config: NormalizationConfig = DEFAULT_CONFIG
+) -> list:
     """Normalize reference URLs and count usage statistics."""
 
     total_counter = Counter()
@@ -43,8 +45,16 @@ def clean_refs(refs: list, config: NormalizationConfig = DEFAULT_CONFIG) -> list
 
     result = []
     for source, total_count in total_counter.items():
-        unique_count = sum(1 for articles in unique_per_article.values() if source in articles)
-        result.append({"source": source, "unique_count": unique_count, "total_count": total_count})
+        unique_count = sum(
+            1 for articles in unique_per_article.values() if source in articles
+        )
+        result.append(
+            {
+                "source": source,
+                "unique_count": unique_count,
+                "total_count": total_count,
+            }
+        )
     return result
 
 

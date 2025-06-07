@@ -37,4 +37,6 @@ def extract_references(wikitext_dir: Path, output_path: Path) -> None:
 
 
 if __name__ == "__main__":
-    extract_references(Path("data/raw/wikitext"), Path("data/processed/refs_extracted.json"))
+    extract_references(
+        Path("data/raw/wikitext"), Path("data/processed/refs_extracted.json")
+    )
