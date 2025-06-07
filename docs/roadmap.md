@@ -43,6 +43,8 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 * [x] Expand test coverage for new modules.
 * [x] Document how to run tests in `README.md`.
 * [x] Expand test coverage for new modules.
-* [ ] Set up continuous integration to run tests automatically.
+* [x] Set up continuous integration to run tests automatically.
 * [x] Standardize default config constant naming.
 * [x] Add package-level documentation.
+* [x] Document customizing `alias_map.json` in README.
+* [x] Add custom User-Agent to all API requests.
