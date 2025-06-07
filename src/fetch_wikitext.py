@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Iterable
 
 import requests
+from scripts.common import HEADERS
 
 API_URL = "https://en.wikipedia.org/w/api.php"
 
@@ -21,7 +22,7 @@ def _fetch_single(title: str) -> str:
         "formatversion": 2,
         "format": "json",
     }
-    resp = requests.get(API_URL, params=params, timeout=10)
+    resp = requests.get(API_URL, params=params, timeout=10, headers=HEADERS)
     resp.raise_for_status()
     data = resp.json()
     pages = data.get("query", {}).get("pages", [])
