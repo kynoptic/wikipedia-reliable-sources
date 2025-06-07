@@ -48,3 +48,21 @@ def test_parse_page_extracts_entries() -> None:
     assert entry.reliability_status == "gr"
     assert entry.notes == "Some notes"
 
+
+def test_parse_page_handles_row_headers() -> None:
+    """Rows starting with ``th`` cells should not be skipped."""
+
+    wikitext = (
+        "==Unreliable sources==\n"
+        "{| class=\"wikitable\"\n"
+        "|-\n! Name !! Notes\n"
+        "|-\n! [[Bad Source]] || Some ''notes''\n"
+        "|}\n"
+    )
+
+    entries = parse_page(wikitext)
+    assert len(entries) == 1
+    entry = entries[0]
+    assert entry.source_name == "Bad Source"
+    assert entry.reliability_status == "gu"
+
