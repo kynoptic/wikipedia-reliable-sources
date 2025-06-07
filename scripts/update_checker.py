@@ -46,6 +46,8 @@ def fetch_revision_id(title: str) -> int:
 
 
 def load_revision_ids() -> Dict[str, int]:
+    """Return previously stored revision IDs or an empty mapping."""
+
     if os.path.exists(REV_FILE):
         with open(REV_FILE, "r", encoding="utf-8") as fh:
             return json.load(fh)
@@ -53,6 +55,8 @@ def load_revision_ids() -> Dict[str, int]:
 
 
 def save_revision_ids(ids: Dict[str, int]) -> None:
+    """Persist revision ID mapping to disk."""
+
     with open(REV_FILE, "w", encoding="utf-8") as fh:
         json.dump(ids, fh, indent=2)
 
@@ -67,6 +71,7 @@ def main() -> None:
         revid = fetch_revision_id(title)
         new_ids[title] = revid
         if prev_ids.get(title) != revid:
+            # Trigger regeneration when any subpage revision changes
             changed = True
 
     if not changed:

@@ -32,6 +32,7 @@ def _fetch_category_members(category: str) -> List[str]:
         cont = data.get("continue")
         if not cont:
             break
+        # Continue fetching additional pages using the API-provided parameters
         params.update(cont)
     return titles
 
