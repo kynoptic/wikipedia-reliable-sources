@@ -88,6 +88,17 @@ has changed since the last run, the script re-fetches the tables and updates
 python scripts/update_checker.py
 ```
 
+## Extracting WikiProject sources
+
+Run `scripts/fetch_wikiproject_sources.py` to download the reliability tables
+maintained by several WikiProjects. The command outputs
+`wikiproject_sources.json` and `wikiproject_sources.csv` at the repository
+root.
+
+```bash
+python scripts/fetch_wikiproject_sources.py
+```
+
 ## Citation normalization pipeline
 
 The project now includes a modular workflow for gathering citation data and normalizing source URLs.
