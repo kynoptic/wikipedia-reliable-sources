@@ -11,3 +11,6 @@ src/utils/__pycache__/
 # Windsurf global configuration
 .windsurf/workflows/global
 .windsurf/rules/global
+
+# GitHub specific
+.github/README.md
