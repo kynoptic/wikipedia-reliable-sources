@@ -56,3 +56,4 @@ table) for downstream use.
 * [x] Add tests for article list fetching module.
 * [x] Add README files for data and configuration folders.
 * [ ] Add examples of API usage in documentation.
+* [x] Improve commit message guidelines in `AGENTS.md`.

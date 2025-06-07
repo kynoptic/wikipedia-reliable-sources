@@ -15,7 +15,14 @@
 - Run `pytest` before each commit to verify the test suite.
 
 ## Commits
-- Use clear, descriptive commit messages explaining the change.
 - Keep commits logically scoped.
+- Use clear messages following [Conventional Commits](https://www.conventionalcommits.org/) with no scope.
+- Start with `<type>: <subject>` on the first line.
+- Limit the subject line to 50 characters.
+- Leave a blank line after the subject.
+- Write body lines as bullet points under 72 characters.
+- Include only one change per bullet.
+- Focus on what and why, not implementation details.
+- Capitalize proper nouns and preserve original casing for identifiers.
 
 Stick to these rules so that the project remains consistent and easy to maintain.
