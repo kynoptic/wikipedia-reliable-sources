@@ -4,6 +4,8 @@
 
 Wikipedia Goggles provides Brave Search Goggle definitions and tools for processing Wikipedia's reliability data. Scripts fetch article lists, download wikitext, extract citation URLs, and rank domains so search results favor reputable sources.
 
+The long-term goal is to automatically fetch the Perennial Sources table, other reliable source lists from WikiProjects, and sources used in Featured Articles and Good Articles to automatically update the Goggle definition.
+
 ## Repository structure
 
 - `/core/` – Python modules for fetching and processing data
@@ -25,7 +27,6 @@ Wikipedia Goggles provides Brave Search Goggle definitions and tools for process
 
 ### Key files
 
-- `docs/roadmap.md` – Ongoing task list the agent must update after each commit
 - `.github/workflows/ci.yml` – Runs tests on push and pull request
 
 ## Environment setup and commands
@@ -66,12 +67,10 @@ Wikipedia Goggles provides Brave Search Goggle definitions and tools for process
 ## Agent roles and interaction
 
 - Single autonomous agent responsible for planning, coding, and testing
-- Keep `docs/roadmap.md` synchronized with repository progress
 
 ## Constraints and safety rules
 
 - **ALWAYS** run `pytest` and ensure it passes before committing
-- **AFTER EVERY COMMIT**, open `docs/roadmap.md` to mark completed tasks or add new ones
 - **NEVER** bypass the Conventional Commits format
 - **KEEP** commit scopes empty (`<type>: <subject>`)
 
@@ -82,9 +81,9 @@ Wikipedia Goggles provides Brave Search Goggle definitions and tools for process
 
 ## Example tasks
 
-* **Add integration tests for update workflow**
+- **Add integration tests for update workflow**
   - Edit: `tests/test_update_checker.py`
   - Validate with: `pytest`
-* **Build API to serve structured data**
+- **Build API to serve structured data**
   - Add a new module under `core/`
   - Provide tests and update documentation
