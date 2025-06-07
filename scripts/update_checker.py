@@ -13,6 +13,7 @@ import os
 from typing import Dict
 
 import requests
+from scripts.common import HEADERS
 
 from fetch_perennial_sources import (
     BASE_TITLE,
@@ -36,7 +37,7 @@ def fetch_revision_id(title: str) -> int:
         "rvprop": "ids",
         "titles": title,
     }
-    r = requests.get(MEDIAWIKI_API, params=params, timeout=30)
+    r = requests.get(MEDIAWIKI_API, params=params, timeout=30, headers=HEADERS)
     r.raise_for_status()
     data = r.json()
     pages = data.get("query", {}).get("pages", {})
