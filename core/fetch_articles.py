@@ -24,7 +24,9 @@ def _fetch_category_members(category: str) -> List[str]:
     }
     titles: List[str] = []
     while True:
-        resp = requests.get(API_URL, params=params, timeout=10, headers=HEADERS)
+        resp = requests.get(
+            API_URL, params=params, timeout=10, headers=HEADERS
+        )
         resp.raise_for_status()
         data = resp.json()
         members = data.get("query", {}).get("categorymembers", [])
@@ -44,7 +46,9 @@ def fetch_good_and_featured(output_dir: Path) -> None:
     featured = _fetch_category_members("Featured articles")
 
     (output_dir / "good_articles.json").write_text(json.dumps(good, indent=2))
-    (output_dir / "featured_articles.json").write_text(json.dumps(featured, indent=2))
+    (output_dir / "featured_articles.json").write_text(
+        json.dumps(featured, indent=2)
+    )
 
 
 if __name__ == "__main__":

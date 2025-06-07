@@ -37,6 +37,7 @@ STATUS_MAP = {
 
 _SORT_RE = re.compile(r'data-sort-value="[^"]*"\s*\|\s*')
 
+
 @dataclass
 class SourceEntry:
     source_name: str
@@ -88,7 +89,9 @@ def fetch_subpage(title: str) -> str:
         "rvprop": "content",
         "titles": title,
     }
-    response = requests.get(MEDIAWIKI_API, params=params, timeout=30, headers=HEADERS)
+    response = requests.get(
+        MEDIAWIKI_API, params=params, timeout=30, headers=HEADERS
+    )
     response.raise_for_status()
     data = response.json()
     pages = data.get("query", {}).get("pages", {})
@@ -99,7 +102,9 @@ def fetch_subpage(title: str) -> str:
 def extract_rows(wikitext: str) -> List[str]:
     """Return raw wikitext rows from a perennial sources subpage."""
     if "<onlyinclude>" in wikitext:
-        wikitext = wikitext.split("<onlyinclude>", 1)[1].split("</onlyinclude>", 1)[0]
+        wikitext = wikitext.split("<onlyinclude>", 1)[1].split(
+            "</onlyinclude>", 1
+        )[0]
     rows = wikitext.split("\n|- ")
     return rows[1:]
 
@@ -160,7 +165,9 @@ def fetch_all() -> List[SourceEntry]:
 def save_to_json(entries: List[SourceEntry], path: str) -> None:
     """Save extracted entries to a JSON file."""
     with open(path, "w", encoding="utf-8") as fh:
-        json.dump([asdict(e) for e in entries], fh, ensure_ascii=False, indent=2)
+        json.dump(
+            [asdict(e) for e in entries], fh, ensure_ascii=False, indent=2
+        )
 
 
 def save_to_csv(entries: List[SourceEntry], path: str) -> None:

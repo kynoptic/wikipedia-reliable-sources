@@ -5,6 +5,7 @@ from pathlib import Path
 from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
 import json
 
+
 @dataclass
 class NormalizationConfig:
     """Configuration options for URL canonicalization."""
@@ -19,9 +20,9 @@ class NormalizationConfig:
 
 def strip_subdomain(hostname: str) -> str:
     """Return hostname without the first subdomain."""
-    parts = hostname.split('.')
+    parts = hostname.split(".")
     if len(parts) > 2:
-        return '.'.join(parts[-2:])
+        return ".".join(parts[-2:])
     return hostname
 
 
@@ -42,8 +43,8 @@ def canonicalize_url(url: str, config: NormalizationConfig) -> str:
         return url
     parsed = urlparse(url)
 
-    host = parsed.hostname or ''
-    if config.strip_www and host.startswith('www.'):
+    host = parsed.hostname or ""
+    if config.strip_www and host.startswith("www."):
         host = host[4:]
     if config.strip_subdomain:
         host = strip_subdomain(host)
@@ -51,10 +52,10 @@ def canonicalize_url(url: str, config: NormalizationConfig) -> str:
     if config.aliases and host in config.aliases:
         host = config.aliases[host]
 
-    path = parsed.path if config.include_path else ''
+    path = parsed.path if config.include_path else ""
     query = parsed.query
     if config.strip_query_params is True:
-        query = ''
+        query = ""
     elif isinstance(config.strip_query_params, list):
         qs = [
             (k, v)
@@ -63,7 +64,9 @@ def canonicalize_url(url: str, config: NormalizationConfig) -> str:
         ]
         query = urlencode(sorted(qs))
     else:
-        query = urlencode(sorted(parse_qsl(parsed.query, keep_blank_values=True)))
+        query = urlencode(
+            sorted(parse_qsl(parsed.query, keep_blank_values=True))
+        )
 
-    canon = urlunparse((parsed.scheme, host, path, '', query, ''))
+    canon = urlunparse((parsed.scheme, host, path, "", query, ""))
     return canon.lower()

@@ -7,14 +7,18 @@ from scripts.common import HEADERS
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scripts.fetch_perennial_sources import fetch_subpage, extract_rows, parse_row
+from scripts.fetch_perennial_sources import (
+    fetch_subpage,
+    extract_rows,
+    parse_row,
+)
 
 
 def test_parse_row(monkeypatch: Any) -> None:
     """Parse a minimal table row and verify fields are extracted."""
 
     wikitext = (
-        "\n|- class=\"s-gr\" id=\"Example\"\n"
+        '\n|- class="s-gr" id="Example"\n'
         "| [[Example News]]\n"
         "| {{WP:RSPSTATUS|gr}}\n"
         "| Discussion\n"
@@ -22,14 +26,22 @@ def test_parse_row(monkeypatch: Any) -> None:
         "| Some ''notes'' here.\n"
     )
 
-    def fake_get(url: str, params: Any | None = None, timeout: int = 30, headers: dict | None = None) -> Any:
+    def fake_get(
+        url: str,
+        params: Any | None = None,
+        timeout: int = 30,
+        headers: dict | None = None,
+    ) -> Any:
         assert headers == HEADERS
+
         class Response:
             def raise_for_status(self) -> None:
                 pass
 
             def json(self) -> dict:
-                return {"query": {"pages": {"1": {"revisions": [{"*": wikitext}]}}}}
+                return {
+                    "query": {"pages": {"1": {"revisions": [{"*": wikitext}]}}}
+                }
 
         return Response()
 
