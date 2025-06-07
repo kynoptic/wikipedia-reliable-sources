@@ -40,5 +40,5 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 
 * [x] Document contributor guidelines in `AGENTS.md`.
 * [x] Document how to run tests in `README.md`.
-* [ ] Expand test coverage for new modules.
+* [x] Expand test coverage for new modules.
 * [ ] Set up continuous integration to run tests automatically.
