@@ -15,13 +15,21 @@ DEFAULT_ALIAS_PATH = Path("data/alias_map.json")
 
 
 def load_refs(path: Path) -> list:
+    """Return a list of raw reference dicts from ``path``.
+
+    The file is expected to contain JSON produced by
+    :func:`src.extract_refs.extract_references`. When the file does not exist
+    an empty list is returned to simplify pipeline usage.
+    """
     if not path.exists():
         return []
     with path.open() as f:
         return json.load(f)
 
 
-def clean_refs(refs: list, config: NormalizationConfig = DEFAULT_CONFIG):
+def clean_refs(refs: list, config: NormalizationConfig = DEFAULT_CONFIG) -> list:
+    """Normalize reference URLs and count usage statistics."""
+
     total_counter = Counter()
     unique_per_article = defaultdict(set)
     for ref in refs:
@@ -29,8 +37,10 @@ def clean_refs(refs: list, config: NormalizationConfig = DEFAULT_CONFIG):
         article = ref.get("article")
         canonical = canonicalize_url(url, config)
         if article:
+            # Track sources that appear in each article so we can compute unique counts
             unique_per_article[article].add(canonical)
         total_counter[canonical] += 1
+
     result = []
     for source, total_count in total_counter.items():
         unique_count = sum(1 for articles in unique_per_article.values() if source in articles)
@@ -39,7 +49,10 @@ def clean_refs(refs: list, config: NormalizationConfig = DEFAULT_CONFIG):
 
 
 def save_sources(data: list, path: Path) -> None:
+    """Write cleaned source counts to ``path`` as a CSV file."""
+
     import csv
+
     fieldnames = ["source", "unique_count", "total_count"]
     with path.open("w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)

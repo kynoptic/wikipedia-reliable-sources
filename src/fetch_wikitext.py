@@ -13,6 +13,8 @@ API_URL = "https://en.wikipedia.org/w/api.php"
 
 
 def _fetch_single(title: str) -> str:
+    """Return raw wikitext for ``title`` via the MediaWiki API."""
+
     params = {
         "action": "query",
         "prop": "revisions",
