@@ -42,3 +42,4 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 * [x] Document how to run tests in `README.md`.
 * [x] Expand test coverage for new modules.
 * [ ] Set up continuous integration to run tests automatically.
+* [x] Standardize default config constant naming.
