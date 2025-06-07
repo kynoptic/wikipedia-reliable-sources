@@ -4,7 +4,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import src.fetch_wikitext as fw
+import core.fetch_wikitext as fw
 
 
 class DummyResponse:
@@ -27,7 +27,9 @@ def test_fetch_single(monkeypatch: Any) -> None:
         }
     }
 
-    def fake_get(url: str, params: dict, timeout: int = 10, headers: dict | None = None) -> DummyResponse:
+    def fake_get(
+        url: str, params: dict, timeout: int = 10, headers: dict | None = None
+    ) -> DummyResponse:
         assert headers == fw.HEADERS
         return DummyResponse(data)
 

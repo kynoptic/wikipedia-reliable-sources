@@ -19,6 +19,16 @@ This project leverages reliability ratings from various Wikipedia sources to ass
 
 Additionally, sources frequently used in featured articles (FA) and good articles (GA) are included.
 
+## Project structure
+
+- `core/` – Python modules with data processing logic
+- `scripts/` – Standalone command-line utilities
+- `tests/` – Pytest suite
+- `docs/` – Documentation and roadmap
+- `data/` – Raw and processed datasets
+- `outputs/` – Generated analysis results
+
+
 ## How reliability affects rankings
 
 The reliability ratings are adjusted using the following parameters:
@@ -85,28 +95,28 @@ The project now includes a modular workflow for gathering citation data and norm
 1. **Fetch article lists**
 
    ```bash
-   python -m src.fetch_articles
+   python -m core.fetch_articles
    ```
    This writes `good_articles.json` and `featured_articles.json` under `data/raw/`.
 
 2. **Download wikitext for each article**
 
    ```bash
-   python -m src.fetch_wikitext
+   python -m core.fetch_wikitext
    ```
    Wikitext files are stored in `data/raw/wikitext/`.
 
 3. **Extract citation URLs**
 
    ```bash
-   python -m src.extract_refs
+   python -m core.extract_refs
    ```
    The extracted references are written to `data/processed/refs_extracted.json`.
 
 4. **Normalize and rank sources**
 
    ```bash
-   python -m src.clean_sources
+   python -m core.clean_sources
    ```
   The script applies domain aliases from `data/alias_map.json`, writes canonical counts to `data/processed/sources_canonical.csv`, and outputs the top sources to `outputs/top_sources.csv`.
 
@@ -114,7 +124,7 @@ The project now includes a modular workflow for gathering citation data and norm
 
 Add new mappings in `data/alias_map.json` to normalize additional domains.
 Each entry maps a short hostname to its canonical form. These aliases are loaded
-by `src/clean_sources`, so updates affect how sources are deduplicated.
+by `core/clean_sources`, so updates affect how sources are deduplicated.
 
 ## Running tests
 

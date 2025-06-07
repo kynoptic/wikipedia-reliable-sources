@@ -1,8 +1,9 @@
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src.extract_refs import parse_refs_from_text
+from core.extract_refs import parse_refs_from_text
 
 
 def test_parse_refs_from_text():

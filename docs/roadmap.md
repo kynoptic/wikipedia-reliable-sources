@@ -49,3 +49,4 @@ Programmatically extract and structure data from [Wikipedia:Reliable sources/Per
 * [x] Document customizing `alias_map.json` in README.
 * [x] Add custom User-Agent to all API requests.
 * [x] Improve docstrings and inline comments for clarity.
+* [x] Rename `src` directory to `core` and update imports.
