@@ -1,28 +1,89 @@
-# Contributor Guidelines
+# `AGENTS.md` – Project guide for AI agents
 
-## Required workflow
-- Keep these instructions open as you work.
-- After **every commit** you make, open `docs/roadmap.md` and bring it up to date:
-  1. Mark any finished tasks with `[x]` checkboxes.
-  2. Add new unchecked boxes for follow-up work or ideas.
-  3. If the roadmap looks complete, suggest fresh directions or improvements.
-- The roadmap must always reflect the current repository status.
+## Project overview and goals
 
-## Development practices
-- Ensure all new Python code includes type hints and docstrings.
-- Follow basic [PEP 8](https://peps.python.org/pep-0008/) style conventions.
-- Provide unit tests for any new functionality and keep existing tests passing.
-- Run `pytest` before each commit to verify the test suite.
+Wikipedia Goggles provides Brave Search Goggle definitions and tools for processing Wikipedia's reliability data. Scripts fetch article lists, download wikitext, extract citation URLs, and rank domains so search results favor reputable sources.
 
-## Commits
-- Keep commits logically scoped.
-- Use clear messages following [Conventional Commits](https://www.conventionalcommits.org/) with no scope.
-- Start with `<type>: <subject>` on the first line.
-- Limit the subject line to 50 characters.
-- Leave a blank line after the subject.
-- Write body lines as bullet points under 72 characters.
-- Include only one change per bullet.
-- Focus on what and why, not implementation details.
-- Capitalize proper nouns and preserve original casing for identifiers.
+The long-term goal is to automatically fetch the Perennial Sources table, other reliable source lists from WikiProjects, and sources used in Featured Articles and Good Articles to automatically update the Goggle definition.
 
-Stick to these rules so that the project remains consistent and easy to maintain.
+## Repository structure
+
+- `/core/` – Python modules for fetching and processing data
+  - `fetch_articles.py` – Download lists of featured and good articles
+  - `fetch_wikitext.py` – Retrieve article wikitext
+  - `extract_refs.py` – Parse citation URLs
+  - `clean_sources.py` – Normalize and rank references
+  - `/utils/` – Shared helpers such as `normalize_url.py`
+- `/scripts/` – Standalone command line utilities
+  - `fetch_perennial_sources.py` – Parse perennial source tables
+  - `update_checker.py` – Detect page updates and regenerate outputs
+- `/data/` – Raw and processed datasets
+- `/outputs/` – Generated reports
+- `/tests/` – Pytest suite covering modules and scripts
+- `/docs/` – Roadmap and configuration notes
+- `.github/` – Continuous integration workflow
+- `requirements.txt` – Python dependencies
+- `wikipedia-reliable-sources.goggle` – Brave Search Goggle definition
+
+### Key files
+
+- `.github/workflows/ci.yml` – Runs tests on push and pull request
+
+## Environment setup and commands
+
+- **Install dependencies**:
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+- **Run scripts** (examples):
+
+    ```bash
+    python scripts/fetch_perennial_sources.py
+    python scripts/update_checker.py
+    ```
+
+- **Run tests**:
+
+    ```bash
+    pytest
+    ```
+
+## Coding guidelines
+
+- Follow PEP 8 style conventions
+- Include type hints and docstrings on all new Python code
+- Provide unit tests for new functionality and keep existing tests passing
+- Commit messages must follow Conventional Commits without a scope
+- Run `pytest` before each commit
+
+## Tools and capabilities
+
+- `requests` and `beautifulsoup4` for HTTP and HTML parsing
+- `mwparserfromhell` for wikitext parsing
+- GitHub Actions runs `pytest` via `ci.yml`
+
+## Agent roles and interaction
+
+- Single autonomous agent responsible for planning, coding, and testing
+
+## Constraints and safety rules
+
+- **ALWAYS** run `pytest` and ensure it passes before committing
+- **NEVER** bypass the Conventional Commits format
+- **KEEP** commit scopes empty (`<type>: <subject>`)
+
+## Known issues and context
+
+- Integration tests for the update workflow are still missing
+- Documentation needs examples of API usage
+
+## Example tasks
+
+- **Add integration tests for update workflow**
+  - Edit: `tests/test_update_checker.py`
+  - Validate with: `pytest`
+- **Build API to serve structured data**
+  - Add a new module under `core/`
+  - Provide tests and update documentation
