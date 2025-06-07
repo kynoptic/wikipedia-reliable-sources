@@ -57,3 +57,5 @@ table) for downstream use.
 * [x] Add README files for data and configuration folders.
 * [ ] Add examples of API usage in documentation.
 * [x] Improve commit message guidelines in `AGENTS.md`.
+* [x] Rewrite `AGENTS.md` with project overview and guidelines.
+* [ ] Add diagram of processing pipeline to documentation.
