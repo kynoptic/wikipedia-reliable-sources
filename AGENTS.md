@@ -57,6 +57,8 @@ The long-term goal is to automatically fetch the Perennial Sources table, other 
   - Directories (e.g., `src/`)
   - Code snippets, flags, and inline commands (e.g., `--help`)
 - Prefer fenced code blocks (` ``` `) for multi-line commands or examples
+- Markdown files must be named in kebab case (e.g., `my-file.md`) with no spaces.
+  Spaces are acceptable in image filenames, external links, and other asset references.
 
 ## Code clarity and documentation standards
 
