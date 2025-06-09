@@ -147,3 +147,8 @@ pytest
 ```
 
 Contributors should run the tests before committing changes to ensure nothing breaks.
+
+## Programmatic API usage
+
+Import functions from the `core` package to integrate the pipeline into your own
+scripts. See `docs/api_usage.md` for complete examples.
