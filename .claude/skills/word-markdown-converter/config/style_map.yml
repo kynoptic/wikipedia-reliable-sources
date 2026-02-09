@@ -1,0 +1,116 @@
+# Style Map Configuration
+# Single source of truth for Word-to-Markdown style conversions
+
+# Character styles (highest priority)
+character_styles:
+  Code:
+    markdown: "backticks"
+    example: "`<div>`"
+    description: "Inline code elements"
+
+  Input:
+    markdown: "kbd_tag"
+    example: "<kbd>Space bar</kbd>"
+    description: "Keyboard input references"
+
+# Paragraph styles
+paragraph_styles:
+  "Title":
+    markdown: "h1"
+    level: 1
+    description: "Document title - becomes main H1 heading"
+
+  "Subtitle":
+    markdown: "italic"
+    description: "Document subtitle with italic formatting"
+
+  "Heading 1":
+    markdown: "h2"
+    level: 2
+    description: "First level heading - offset from Title"
+
+  "Heading 2":
+    markdown: "h3"
+    level: 3
+    description: "Second level heading"
+
+  "Heading 3":
+    markdown: "h4"
+    level: 4
+    description: "Third level heading"
+
+  "Heading 4":
+    markdown: "h5"
+    level: 5
+    description: "Fourth level heading"
+
+  "Heading 5":
+    markdown: "h6"
+    level: 6
+    description: "Fifth level heading"
+
+  "Heading 6":
+    markdown: "h6"
+    level: 6
+    description: "Sixth level heading (capped at h6)"
+
+  # Table of contents styles - exclude from conversion
+  "toc 1":
+    markdown: "exclude"
+    description: "Table of contents level 1 - auto-generated, exclude from conversion"
+
+  "toc 2":
+    markdown: "exclude"
+    description: "Table of contents level 2 - auto-generated, exclude from conversion"
+
+  "toc 3":
+    markdown: "exclude"
+    description: "Table of contents level 3 - auto-generated, exclude from conversion"
+
+  "Code block":
+    markdown: "fenced_code"
+    default_language: "html"
+    description: "Multi-line code blocks"
+
+  "List Paragraph":
+    markdown: "bullet_list"
+    marker: "-"
+
+  "List Number":
+    markdown: "numbered_list"
+    marker: "1."
+
+# Direct formatting rules
+direct_formatting:
+  bold_italic:
+    markdown: "***text***"
+    priority: 1
+
+  bold:
+    markdown: "**text**"
+    priority: 2
+
+  italic:
+    markdown: "*text*"
+    priority: 3
+
+# Language detection patterns for code blocks
+code_languages:
+  html:
+    patterns: ["<html>", "<div>", "<p>", "<span>", "<a>"]
+
+  css:
+    patterns: ["{", "}", ":", ";"]
+    exclude_starts_with: ["<"]
+
+  javascript:
+    patterns: ["function", "var ", "let ", "const ", "=>"]
+
+  python:
+    patterns: ["def ", "import ", "print(", "__init__"]
+
+# Default settings
+defaults:
+  code_language: "html"
+  list_marker: "-"
+  heading_max_level: 6

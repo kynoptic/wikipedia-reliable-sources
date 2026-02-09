@@ -1,0 +1,31 @@
+{
+  // Load the markdownlint-trap custom rules package
+  // This enables all five custom rules in the VS Code markdownlint extension
+  "markdownlint.customRules": [
+    "markdownlint-trap"
+  ],
+
+  // Configure which markdownlint rules are enabled
+  // Each rule can be set to true (enabled), false (disabled), or an object with options
+  "markdownlint.config": {
+    // Enforce sentence case in ATX headings (e.g., "## Getting started" not "## Getting Started")
+    // Preserves acronyms, proper nouns, and technical terms automatically
+    "sentence-case-heading": true,
+
+    // Require backticks around code elements, commands, file paths, and directories
+    // Helps distinguish code from regular text (e.g., `npm install` not npm install)
+    "backtick-code-elements": true,
+
+    // Prevent bare URLs and require proper markdown link formatting
+    // Use [text](url) instead of just pasting URLs
+    "no-bare-url": true,
+
+    // Validate internal links to files and anchors exist
+    // Catches broken links to local files and heading anchors
+    "no-dead-internal-links": true,
+
+    // Replace literal ampersands (&) with "and" in prose
+    // Improves readability (e.g., "cats and dogs" not "cats & dogs")
+    "no-literal-ampersand": true
+  }
+}
