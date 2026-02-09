@@ -1,0 +1,61 @@
+{
+  // Recommended configuration for markdownlint-trap
+  // Enables all custom rules with balanced strictness
+  "customRules": [
+    "markdownlint-trap"
+  ],
+  "config": {
+    "MD013": false,
+    "MD049": {
+      "style": "asterisk"
+    },
+    "MD050": {
+      "style": "asterisk"
+    },
+    "sentence-case-heading": {
+      "specialTerms": [
+        // Acronyms and abbreviations
+        "ADR",
+        "ADRs",
+        "API",
+        "APIs",
+        "CLI",
+        "CSS",
+        "E2E",
+        "HTML",
+        "JSON",
+        "PATCH",
+        // Technology and product names (always proper nouns)
+        "Git",
+        "GitHub",
+        "JavaScript",
+        "Node",
+        "TypeScript",
+        // Multi-word GitHub product names
+        "GitHub Issues",
+        "GitHub Issue",
+        "GitHub Projects",
+        "GitHub Project",
+        "GitHub Markdown Alerts",
+        // File and document type conventions
+        "CHANGELOG",
+        "README",
+        // Compound technical terms (with hyphens)
+        "Behavior-focused",
+        // All-caps emphasis terms (style convention in guidelines)
+        "FORBIDDEN",
+        "IMPORTANT",
+        "WARNING"
+      ]
+    },
+    "backtick-code-elements": true,
+    "no-bare-url": true,
+    "no-dead-internal-links": {
+      "allowPlaceholders": true
+    },
+    "MD024": {
+      "siblings_only": true
+    },
+    "no-literal-ampersand": true
+  }
+}
