@@ -8,26 +8,39 @@ project's own fetching scripts.
 
 ## Provenance
 
-These files are keyed to **2016 English Wikipedia dumps** — the snapshot date is
-encoded in each filename (`2016-06-01`, `20161101`). They were assembled for this
-project from several extraction tools rather than downloaded as one published
-dataset, and the exact published origin of these specific files is not recorded:
+These files were assembled from **six independent published datasets** spanning
+2016–2020, not one source — each is re-downloadable from its archive. The table
+gives the origin and the fastest way to restore each file; details and
+regeneration-from-scratch steps follow.
 
-* The `*_CS1_citations` extraction (per-citation `page_id`, revision, timestamp,
-  title, template type, and a JSON metadata blob) follows the citation-extraction
-  method of Singh, West & Colavizza,
-  [*Wikipedia Citations*](https://arxiv.org/abs/2007.07022). Their published
-  dataset ([Zenodo 10.5281/zenodo.3940692](https://doi.org/10.5281/zenodo.3940692))
-  is built from a **2020** dump, so it is a method reference, not the source of
-  these 2016 files.
-* `page2cat.tsv` is a page-to-category mapping of the kind produced by Wikipedia
-  category-extraction tooling; `*_headings.tsv` are section headings; `enwiki.tsv`
-  holds citation identifiers (`doi`, `isbn`, …) per revision.
-* `featured-articles.csv` / `good-articles.csv` are Wikipedia category exports.
+| File | Source dataset | Restore |
+|---|---|---|
+| `…_2016-06-01_CS1_citations.tsv` | Delpeuch, *Structured citations in the English Wikipedia* — [Zenodo 55004](https://doi.org/10.5281/zenodo.55004) | Download `enwiki_2016-06-01_CS1_citations.tsv.bz2` (the byte-exact original) and `bunzip2` |
+| `…_enwiki.tsv` | Halfaker et al., *Citations with identifiers in Wikipedia* — [figshare 1299540](https://doi.org/10.6084/m9.figshare.1299540) (2018-03-01 dump) | Download `enwiki.tsv.tar.gz` |
+| `…_enwiki 2.tsv` | Redi & Taraborelli, *Accessibility and topics of citations with identifiers in Wikipedia* — [figshare 6819710](https://doi.org/10.6084/m9.figshare.6819710) | Download `enwiki.tsv.gz` |
+| `…_20161101_headings.tsv` | Farooqui (WMF), *Wikipedia Article Section Headings* — [figshare 4296476](https://doi.org/10.6084/m9.figshare.4296476) | Download the enwiki headings file |
+| `…_page2cat.tsv` | [`corradomonti/wikipedia-categories`](https://github.com/corradomonti/wikipedia-categories) (`page2cat.tsv.gz`, built from enwiki-20160407) | Download the repo's released `page2cat.tsv.gz` |
+| `featured-articles.csv` / `good-articles.csv` | [PetScan](https://petscan.wmcloud.org/) category export (~2020-03-30) | `python -m core.fetch_articles` |
 
-Reproducing the dumps means re-running the extraction against a 2016 `enwiki`
-dump (Wikimedia dumps / archive.org). Treat the archive copy as the primary
-source.
+Notes:
+
+* The `_CS1_citations` file is the decompressed Zenodo bz2; its `cite_type` +
+  JSON-metadata format comes from [`dissemin/wikiciteparser`](https://github.com/dissemin/wikiciteparser)
+  (the `2016-06-01` in the name is the Zenodo publication date — the dump itself
+  is enwiki-20160501). The earlier attribution to Singh, West & Colavizza was
+  incorrect.
+* `enwiki.tsv` is [`mwcites`](https://github.com/mediawiki-utilities/python-mwcites)
+  identifier output (`doi, isbn, pmid, pmc, arxiv`); `enwiki 2.tsv` enriches it
+  with the ORES `drafttopic`/`articletopic` taxonomy and Unpaywall open-access
+  status.
+
+To regenerate from scratch rather than re-download, run the source tool against
+the matching dump. The mid-2016 enwiki dumps are purged from
+`dumps.wikimedia.org` but archived on the Internet Archive:
+[`enwiki-20160501`](https://archive.org/details/enwiki-20160501) and
+[`enwiki-20161101`](https://archive.org/details/enwiki-20161101). A fresh run may
+not be byte-identical to the published files (library/Lua drift), so prefer
+re-downloading.
 
 ## Contents
 
