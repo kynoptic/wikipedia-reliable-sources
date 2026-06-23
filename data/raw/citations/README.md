@@ -8,13 +8,26 @@ project's own fetching scripts.
 
 ## Provenance
 
-The `*.tsv` dumps are the published **Wikipedia Citations** dataset (Singh,
-West & Colavizza), archived on Zenodo at
-[DOI 10.5281/zenodo.3940692](https://doi.org/10.5281/zenodo.3940692). The dump
-snapshot is encoded in each filename (e.g. `2016-06-01`, `20161101`). Because
-the source is permanently archived and citable, these files are deliberately
-kept out of git rather than mirrored via LFS — re-download from Zenodo to
-restore a lost local copy.
+These files are keyed to **2016 English Wikipedia dumps** — the snapshot date is
+encoded in each filename (`2016-06-01`, `20161101`). They were assembled for this
+project from several extraction tools rather than downloaded as one published
+dataset, and the exact published origin of these specific files is not recorded:
+
+* The `*_CS1_citations` extraction (per-citation `page_id`, revision, timestamp,
+  title, template type, and a JSON metadata blob) follows the citation-extraction
+  method of Singh, West & Colavizza,
+  [*Wikipedia Citations*](https://arxiv.org/abs/2007.07022). Their published
+  dataset ([Zenodo 10.5281/zenodo.3940692](https://doi.org/10.5281/zenodo.3940692))
+  is built from a **2020** dump, so it is a method reference, not the source of
+  these 2016 files.
+* `page2cat.tsv` is a page-to-category mapping of the kind produced by Wikipedia
+  category-extraction tooling; `*_headings.tsv` are section headings; `enwiki.tsv`
+  holds citation identifiers (`doi`, `isbn`, …) per revision.
+* `featured-articles.csv` / `good-articles.csv` are Wikipedia category exports.
+
+Reproducing the dumps means re-running the extraction against a 2016 `enwiki`
+dump (Wikimedia dumps / archive.org). Treat the archive copy as the primary
+source.
 
 ## Contents
 
@@ -30,7 +43,8 @@ restore a lost local copy.
 ### Untracked files (git-ignored — see [`/.gitignore`](../../../.gitignore))
 
 The bulk `*.tsv` dumps total ~5.4 GB and are kept out of git history. Restore
-them from the Zenodo source above if missing.
+them from the archive copy if missing (these specific files are not published on
+Zenodo — see [Provenance](#provenance)).
 
 * **`wikipedia-citations_enwiki.tsv`** (~298 MB) – Citation identifiers per
   revision: `page_id, page_title, rev_id, timestamp, type, id` (e.g. `doi`).
