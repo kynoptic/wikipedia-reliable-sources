@@ -10,8 +10,11 @@ import core.fetch_articles as fa
 
 
 class DummyResponse:
-    def __init__(self, data: dict) -> None:
+    def __init__(self, data: dict | None = None, status_code: int = 200, text: str = "") -> None:
         self._data = data
+        self.status_code = status_code
+        self.headers: dict = {}
+        self.text = text
 
     def json(self) -> dict:
         return self._data
@@ -47,6 +50,7 @@ def test_fetch_category_members_paginates(monkeypatch: Any) -> None:
         return DummyResponse(page2 if params.get("cmcontinue") else page1)
 
     monkeypatch.setattr(fa.requests, "get", fake_get)
+    monkeypatch.setattr(fa.time, "sleep", lambda _s: None)
 
     result = fa._fetch_category_members("Good articles")
 
@@ -57,6 +61,24 @@ def test_fetch_category_members_paginates(monkeypatch: Any) -> None:
     assert calls[0]["cmprop"] == "ids|title"
     assert calls[0].get("cmcontinue") is None
     assert calls[1].get("cmcontinue") == "token"
+
+
+def test_fetch_fa_ga_petscan_writes_csvs(monkeypatch: Any, tmp_path: Path) -> None:
+    """fetch_fa_ga_petscan writes one PetScan CSV per list."""
+
+    csv_body = '"number","title","pageid"\n"1","Anarchism","12"\n'
+    calls: list[str] = []
+
+    def fake_get(url: str, params: dict, timeout: int = 60, headers: dict | None = None) -> DummyResponse:
+        calls.append(params["categories"])
+        return DummyResponse(text=csv_body)
+
+    monkeypatch.setattr(fa.requests, "get", fake_get)
+    fa.fetch_fa_ga_petscan(tmp_path)
+
+    assert sorted(calls) == ["Featured articles", "Good articles"]
+    assert (tmp_path / "featured-articles.csv").read_text() == csv_body
+    assert (tmp_path / "good-articles.csv").read_text() == csv_body
 
 
 def test_fetch_good_and_featured_writes_json_and_csv(monkeypatch: Any, tmp_path: Path) -> None:

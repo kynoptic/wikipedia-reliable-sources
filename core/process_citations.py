@@ -1,10 +1,11 @@
 """Aggregate Wikipedia citation dumps into per-host and per-domain frequency tables.
 
 This reimplements a Google Cloud Dataprep (Trifacta) flow that ranked web sources
-by how often Wikipedia's Featured and Good articles cite them. It streams a CS1
-citations TSV, extracts each citation's URL, tags the citing article as
-Featured/Good, and pivots by host and by domain. See
-``data/raw/citations/README.md`` for the original flow.
+by how often Wikipedia's Featured and Good articles cite them. It extracts each
+citation's URL, tags the citing article as Featured/Good, and pivots by host and
+by domain. Two input formats are supported: the 2016 CS1 citations TSV (joined to
+FA/GA by ``page_id``) and the 2023 Parquet dataset (joined by title). See
+``data/raw/citations/README.md`` for the original flow and both run modes.
 """
 
 from __future__ import annotations
@@ -92,6 +93,35 @@ def load_classifier(featured_path: Path, good_path: Path) -> ArticleClassifier:
     )
 
 
+def _norm_title(title: str) -> str:
+    """Canonicalize a page title for joining (underscores to spaces, trimmed)."""
+    return title.replace("_", " ").strip()
+
+
+def load_article_titles(path: Path) -> set[str]:
+    """Return the set of normalized ``title`` values from a Featured/Good CSV.
+
+    Used to join datasets that carry only the page title (no ``page_id``).
+    """
+    if not path.exists():
+        return set()
+    titles: set[str] = set()
+    with path.open(newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            title = (row.get("title") or "").strip()
+            if title:
+                titles.add(_norm_title(title))
+    return titles
+
+
+def load_title_classifier(featured_path: Path, good_path: Path) -> ArticleClassifier:
+    """Build a title-keyed :class:`ArticleClassifier` from the FA and GA CSVs."""
+    return ArticleClassifier(
+        featured_ids=load_article_titles(featured_path),
+        good_ids=load_article_titles(good_path),
+    )
+
+
 def _parse_record(record: str) -> CitationRow | None:
     """Parse one reassembled record into a :class:`CitationRow`, or ``None``."""
     parts = record.split("\t", _CITATION_COLUMNS - 1)
@@ -147,6 +177,38 @@ def iter_citation_rows(path: Path) -> Iterator[CitationRow]:
         yield from consume(buffer)
     if skipped:
         print(f"Skipped {skipped} malformed citation rows", file=sys.stderr)
+
+
+_PARQUET_COLUMNS = ["page_title", "type_of_citation", "URL"]
+
+
+def iter_parquet_citation_rows(path: Path) -> Iterator[CitationRow]:
+    """Stream :class:`CitationRow` records from a 2023-format Parquet dataset.
+
+    ``path`` is a Parquet file or a directory of part-files (Kokash & Colavizza,
+    Zenodo 8107239). That dataset carries ``page_title`` but no ``page_id``, so
+    the title is used as the join key — it is placed in ``page_id`` (normalized)
+    so the downstream aggregation, which keys on that field, works unchanged.
+    Read in row-group batches for constant memory.
+    """
+    import pyarrow.dataset as ds
+
+    dataset = ds.dataset(str(path), format="parquet")
+    for batch in dataset.to_batches(columns=_PARQUET_COLUMNS):
+        titles = batch.column("page_title").to_pylist()
+        types = batch.column("type_of_citation").to_pylist()
+        urls = batch.column("URL").to_pylist()
+        for title, cite_type, url in zip(titles, types, urls):
+            if not title:
+                continue
+            yield CitationRow(
+                revision_id="",
+                page_id=_norm_title(title),
+                timestamp="",
+                page_title=title,
+                cite_type=normalize_cite_type(cite_type or ""),
+                url=url or "",
+            )
 
 
 def _host_of(url: str, config: NormalizationConfig) -> str:
@@ -271,31 +333,56 @@ def rank_by_count(data: list[dict], limit: int = 50) -> list[dict]:
     return ranked[:limit]
 
 
-if __name__ == "__main__":
-    citations_dir = Path("data/raw/citations")
-    tsv_path = citations_dir / "zenodo-55004" / "enwiki_2016-06-01_CS1_citations.tsv"
-    featured_path = citations_dir / "featured-articles.csv"
-    good_path = citations_dir / "good-articles.csv"
+def main(argv: list[str] | None = None) -> int:
+    """Run the aggregation in 2016 (TSV, page-id join) or 2023 (Parquet, title join) mode."""
+    import argparse
 
-    host_path = Path("data/processed/citations_by_host.csv")
-    domain_path = Path("data/processed/citations_by_domain.csv")
-    top_path = Path("outputs/top_sources_by_domain.csv")
+    citations_dir = Path("data/raw/citations")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--parquet",
+        type=Path,
+        help="2023 Parquet dataset dir/file (title-joined). Omit for the 2016 TSV.",
+    )
+    parser.add_argument(
+        "--tsv",
+        type=Path,
+        default=citations_dir / "zenodo-55004" / "enwiki_2016-06-01_CS1_citations.tsv",
+    )
+    parser.add_argument("--featured", type=Path, help="Featured-article CSV")
+    parser.add_argument("--good", type=Path, help="Good-article CSV")
+    parser.add_argument("--out-host", type=Path, default=Path("data/processed/citations_by_host.csv"))
+    parser.add_argument("--out-domain", type=Path, default=Path("data/processed/citations_by_domain.csv"))
+    parser.add_argument("--top", type=Path, default=Path("outputs/top_sources_by_domain.csv"))
+    args = parser.parse_args(argv)
+
+    # The current FA/GA snapshot lives apart from the 2016 PetScan snapshot.
+    fa_default = "current/featured-articles.csv" if args.parquet else "featured-articles.csv"
+    ga_default = "current/good-articles.csv" if args.parquet else "good-articles.csv"
+    featured = args.featured or citations_dir / fa_default
+    good = args.good or citations_dir / ga_default
 
     config = NormalizationConfig(aliases=load_aliases(DEFAULT_ALIAS_PATH))
-    classifier = load_classifier(featured_path, good_path)
+    if args.parquet:
+        rows = iter_parquet_citation_rows(args.parquet)
+        classifier = load_title_classifier(featured, good)
+        source = args.parquet
+    else:
+        rows = iter_citation_rows(args.tsv)
+        classifier = load_classifier(featured, good)
+        source = args.tsv
 
-    by_host, by_domain = aggregate_citations(
-        iter_citation_rows(tsv_path), classifier, config
-    )
+    by_host, by_domain = aggregate_citations(rows, classifier, config)
 
-    for path in (host_path, domain_path, top_path):
+    for path in (args.out_host, args.out_domain, args.top):
         path.parent.mkdir(parents=True, exist_ok=True)
+    save_host_table(by_host, args.out_host)
+    save_domain_table(by_domain, args.out_domain)
+    save_domain_table(rank_by_count(by_domain), args.top)
 
-    save_host_table(by_host, host_path)
-    save_domain_table(by_domain, domain_path)
-    save_domain_table(rank_by_count(by_domain), top_path)
+    print(f"Wrote {len(by_host)} hosts and {len(by_domain)} domains from {source}")
+    return 0
 
-    print(
-        f"Wrote {len(by_host)} hosts and {len(by_domain)} domains "
-        f"from {tsv_path}"
-    )
+
+if __name__ == "__main__":
+    sys.exit(main())

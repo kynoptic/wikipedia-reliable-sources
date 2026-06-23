@@ -12,7 +12,9 @@ from core.process_citations import (
     CitationRow,
     aggregate_citations,
     iter_citation_rows,
+    iter_parquet_citation_rows,
     load_article_ids,
+    load_article_titles,
     normalize_cite_type,
     rank_by_count,
     save_domain_table,
@@ -22,6 +24,10 @@ from core.process_citations import (
 REAL_TSV = (
     Path(__file__).resolve().parents[1]
     / "data/raw/citations/zenodo-55004/enwiki_2016-06-01_CS1_citations.tsv"
+)
+REAL_PARQUET = (
+    Path(__file__).resolve().parents[1]
+    / "data/raw/citations/zenodo-8107239/en_citations.parquet"
 )
 
 
@@ -126,6 +132,59 @@ def test_load_article_ids_missing_file(tmp_path):
     assert load_article_ids(tmp_path / "nope.csv") == set()
 
 
+def test_load_article_titles_normalizes_underscores(tmp_path):
+    csv_path = tmp_path / "fa.csv"
+    csv_path.write_text(
+        '"number","title","pageid"\n'
+        '"1","Abraham_Lincoln","307"\n'
+        '"2","Autism","25"\n'
+    )
+    assert load_article_titles(csv_path) == {"Abraham Lincoln", "Autism"}
+
+
+def test_iter_parquet_citation_rows_uses_title_as_key(tmp_path):
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    table = pa.table(
+        {
+            "page_title": ["Anarchism", "Biology", "NoUrl_Page"],
+            "type_of_citation": ["cite journal", "Cite Book ", "cite web"],
+            "URL": ["http://a.com/x", "http://b.com/y", ""],
+        }
+    )
+    pq.write_table(table, tmp_path / "part-0.parquet")
+
+    rows = list(iter_parquet_citation_rows(tmp_path))
+    assert len(rows) == 3
+    assert rows[0].page_id == "Anarchism"  # title is the join key
+    assert rows[0].cite_type == "cite journal"
+    assert rows[0].url == "http://a.com/x"
+    assert rows[1].cite_type == "cite book"  # normalized
+    assert rows[2].url == ""  # empty URL preserved
+
+
+def test_parquet_rows_aggregate_with_title_classifier(tmp_path):
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    table = pa.table(
+        {
+            "page_title": ["Anarchism", "Biology"],
+            "type_of_citation": ["cite web", "cite web"],
+            "URL": ["http://www.bbc.co.uk/n1", "http://www.bbc.co.uk/n2"],
+        }
+    )
+    pq.write_table(table, tmp_path / "part-0.parquet")
+
+    classifier = ArticleClassifier(featured_ids={"Anarchism"}, good_ids={"Biology"})
+    _, by_domain = aggregate_citations(iter_parquet_citation_rows(tmp_path), classifier)
+    bbc = {(r["domain_url"], r["suffix_url"]): r for r in by_domain}[("bbc", "co.uk")]
+    assert bbc["total_citations"] == 2
+    assert bbc["fa_citations"] == 1
+    assert bbc["ga_citations"] == 1
+
+
 def test_aggregate_citations_counts_host_and_domain():
     classifier = ArticleClassifier(featured_ids={"1"}, good_ids={"2"})
     rows = [
@@ -205,3 +264,11 @@ def test_smoke_real_tsv_head_aggregates():
     classifier = ArticleClassifier(featured_ids=set(), good_ids=set())
     by_host, by_domain = aggregate_citations(rows, classifier)
     assert by_host and by_domain
+
+
+@pytest.mark.skipif(not REAL_PARQUET.exists(), reason="2023 Parquet dataset not present")
+def test_smoke_real_parquet_head_aggregates():
+    rows = list(itertools.islice(iter_parquet_citation_rows(REAL_PARQUET), 1000))
+    assert rows, "expected parsed rows from the real Parquet dataset"
+    assert any(r.url for r in rows), "expected at least one row with a URL"
+    assert all(r.page_id == r.page_title.replace("_", " ").strip() for r in rows)

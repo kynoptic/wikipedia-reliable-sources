@@ -25,6 +25,7 @@ import shutil
 import sys
 import tarfile
 import tempfile
+import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -83,6 +84,15 @@ DATASETS: list[Dataset] = [
     ),
 ]
 
+# Opt-in only: the 2023 dataset is a ~7.3 GB zip of a partitioned Parquet
+# directory, fetched separately from the core re-fetchable set above.
+CURRENT_2023 = Dataset(
+    "zenodo-8107239/en_citations.parquet",
+    "https://zenodo.org/api/records/8107239/files/en_citations.zip/content",
+    "zip-dir",
+    "Kokash & Colavizza, Classified Citations from English Wikipedia 2023 (Zenodo 8107239)",
+)
+
 
 def _download(url: str, dest: Path) -> None:
     """Stream ``url`` to ``dest``."""
@@ -120,6 +130,14 @@ def _sole_member(tar: tarfile.TarFile) -> str:
     return files[0]
 
 
+def _extract_zip_dir(src: Path, out: Path) -> None:
+    """Extract a zip whose top-level directory is named ``out.name`` into place."""
+    if out.exists():
+        shutil.rmtree(out)
+    with zipfile.ZipFile(src) as zf:
+        zf.extractall(out.parent)
+
+
 def restore_dataset(ds: Dataset, dest_dir: Path, force: bool = False) -> bool:
     """Restore one dataset. Returns ``True`` if it was fetched, ``False`` if skipped."""
     out = dest_dir / ds.target
@@ -132,9 +150,12 @@ def restore_dataset(ds: Dataset, dest_dir: Path, force: bool = False) -> bool:
         tmp_path = Path(tmp.name)
     try:
         _download(ds.url, tmp_path)
-        partial = out.with_suffix(out.suffix + ".part")
-        _decompress(tmp_path, ds.archive, partial, ds.member)
-        partial.replace(out)
+        if ds.archive == "zip-dir":
+            _extract_zip_dir(tmp_path, out)
+        else:
+            partial = out.with_suffix(out.suffix + ".part")
+            _decompress(tmp_path, ds.archive, partial, ds.member)
+            partial.replace(out)
     finally:
         tmp_path.unlink(missing_ok=True)
     return True
@@ -155,13 +176,22 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--check", action="store_true", help="verify URLs are reachable, download nothing"
     )
+    parser.add_argument(
+        "--fetch-2023",
+        action="store_true",
+        help="also fetch the ~7.3 GB 2023 Parquet dataset (Zenodo 8107239)",
+    )
     args = parser.parse_args(argv)
 
-    if args.check:
-        return 0 if all([check_url(ds) for ds in DATASETS]) else 1
+    datasets = list(DATASETS)
+    if args.fetch_2023:
+        datasets.append(CURRENT_2023)
 
-    fetched = sum(restore_dataset(ds, DEST_DIR, args.force) for ds in DATASETS)
-    print(f"\nDone — {fetched} fetched, {len(DATASETS) - fetched} already present.")
+    if args.check:
+        return 0 if all([check_url(ds) for ds in datasets]) else 1
+
+    fetched = sum(restore_dataset(ds, DEST_DIR, args.force) for ds in datasets)
+    print(f"\nDone — {fetched} fetched, {len(datasets) - fetched} already present.")
     print("Regenerate Featured/Good article lists with: python -m core.fetch_articles")
     return 0
 

@@ -2,4 +2,5 @@ requests
 mwparserfromhell
 beautifulsoup4
 tldextract
+pyarrow
 pytest

@@ -119,10 +119,31 @@ articles cite most," the raw signal for ranking source reliability in the
 Goggle. This repo's `core/` reimplements the same idea from live wikitext
 rather than the static 2016 dump.
 
+## Current-aligned analysis (2023)
+
+The 2016 citations join Featured/Good status by `page_id`, but the FA/GA snapshot
+predates the dump by four years. For a temporally consistent run, the pipeline
+also accepts the **2023 citation dataset** (Kokash & Colavizza,
+[Zenodo 8107239](https://doi.org/10.5281/zenodo.8107239)) paired with a current
+FA/GA snapshot. That dataset is a partitioned Apache **Parquet** directory
+(`type_of_citation, page_title, URL, …`) with **no `page_id`**, so the join is on
+**title** instead. Run it:
+
+```bash
+python -m scripts.fetch_citation_data --fetch-2023   # ~7.3 GB zip → parquet dir
+python -m core.fetch_articles                         # current FA/GA via PetScan → current/
+python -m core.process_citations \
+    --parquet data/raw/citations/zenodo-8107239/en_citations.parquet
+```
+
+The current FA/GA lists come from [PetScan](https://petscan.wmcloud.org/) (one
+request per list, not the paginated categorymembers API). Reading the Parquet
+requires `pyarrow`.
+
 ## Usage
 
-Exploration data only — treat as read-only. The large TSVs are git-ignored, so
-clones will not include them.
+Exploration data only — treat as read-only. The large datasets are git-ignored,
+so clones will not include them; restore them with the scripts above.
 
 ## Related
 

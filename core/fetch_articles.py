@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import json
+import time
 from pathlib import Path
 from typing import List
 
@@ -14,6 +15,31 @@ from scripts.common import HEADERS
 API_URL = "https://en.wikipedia.org/w/api.php"
 
 _CSV_FIELDS = ["number", "title", "pageid", "namespace", "length", "touched"]
+
+_MAX_RETRIES = 6
+_BASE_DELAY = 1.0
+_PAGE_DELAY = 0.2  # politeness pause between paginated requests
+
+
+def _api_get(params: dict) -> dict:
+    """GET the MediaWiki API, backing off on rate-limit responses (429/503).
+
+    Large categories require many paginated requests; the API rate-limits rapid
+    bursts, so retry with exponential backoff (honoring ``Retry-After``).
+    """
+    delay = _BASE_DELAY
+    resp = None
+    for _ in range(_MAX_RETRIES):
+        resp = requests.get(API_URL, params=params, timeout=30, headers=HEADERS)
+        if resp.status_code in (429, 503):
+            retry_after = resp.headers.get("Retry-After", "")
+            time.sleep(float(retry_after) if retry_after.isdigit() else delay)
+            delay = min(delay * 2, 30.0)
+            continue
+        resp.raise_for_status()
+        return resp.json()
+    resp.raise_for_status()  # retries exhausted; surface the last error
+    return resp.json()
 
 
 def _fetch_category_members(category: str) -> List[dict]:
@@ -32,11 +58,7 @@ def _fetch_category_members(category: str) -> List[dict]:
     }
     members: List[dict] = []
     while True:
-        resp = requests.get(
-            API_URL, params=params, timeout=10, headers=HEADERS
-        )
-        resp.raise_for_status()
-        data = resp.json()
+        data = _api_get(params)
         page = data.get("query", {}).get("categorymembers", [])
         members.extend(
             {"pageid": str(m["pageid"]), "title": m["title"]}
@@ -48,6 +70,7 @@ def _fetch_category_members(category: str) -> List[dict]:
             break
         # Continue fetching additional pages using the API-provided parameters
         params.update(cont)
+        time.sleep(_PAGE_DELAY)
     return members
 
 
@@ -90,5 +113,40 @@ def fetch_good_and_featured(output_dir: Path) -> None:
     _write_csv(featured, output_dir / "featured-articles.csv")
 
 
+PETSCAN_URL = "https://petscan.wmcloud.org/"
+
+
+def fetch_petscan_csv(category: str, depth: int = 0) -> str:
+    """Return a category's full member list as PetScan CSV in one request.
+
+    PetScan runs the category query server-side and returns every member as a
+    single ``number,title,pageid,namespace,length,touched`` CSV — avoiding the
+    ~500-per-request pagination (and rate limits) of the categorymembers API.
+    """
+    params = {
+        "language": "en",
+        "project": "wikipedia",
+        "categories": category,
+        "depth": str(depth),
+        "ns[0]": "1",
+        "format": "csv",
+        "doit": "1",
+    }
+    resp = requests.get(PETSCAN_URL, params=params, timeout=180, headers=HEADERS)
+    resp.raise_for_status()
+    return resp.text
+
+
+def fetch_fa_ga_petscan(output_dir: Path) -> None:
+    """Write current Featured/Good article CSVs via PetScan (one request each)."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "featured-articles.csv").write_text(
+        fetch_petscan_csv("Featured articles")
+    )
+    (output_dir / "good-articles.csv").write_text(
+        fetch_petscan_csv("Good articles")
+    )
+
+
 if __name__ == "__main__":
-    fetch_good_and_featured(Path("data/raw"))
+    fetch_fa_ga_petscan(Path("data/raw/citations/current"))

@@ -8,6 +8,8 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import zipfile
+
 import scripts.fetch_citation_data as fcd
 from scripts.fetch_citation_data import Dataset, _decompress, restore_dataset
 
@@ -49,6 +51,20 @@ def test_restore_dataset_skips_existing(tmp_path: Path, monkeypatch: Any) -> Non
     monkeypatch.setattr(fcd, "_download", fail)
     ds = Dataset("target.tsv", "http://example/x", "gz", "src")
     assert restore_dataset(ds, tmp_path) is False
+
+
+def test_restore_dataset_extracts_zip_dir(tmp_path: Path, monkeypatch: Any) -> None:
+    def fake_download(url: str, dest: Path) -> None:
+        with zipfile.ZipFile(dest, "w") as zf:
+            zf.writestr("en_citations.parquet/part-0.parquet", b"p0")
+            zf.writestr("en_citations.parquet/part-1.parquet", b"p1")
+
+    monkeypatch.setattr(fcd, "_download", fake_download)
+    ds = Dataset("zenodo-8107239/en_citations.parquet", "http://example/z", "zip-dir", "src")
+    assert restore_dataset(ds, tmp_path) is True
+    out = tmp_path / "zenodo-8107239" / "en_citations.parquet"
+    assert (out / "part-0.parquet").read_bytes() == b"p0"
+    assert (out / "part-1.parquet").read_bytes() == b"p1"
 
 
 def test_restore_dataset_fetches_into_source_subfolder(tmp_path: Path, monkeypatch: Any) -> None:
