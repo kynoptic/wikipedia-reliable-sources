@@ -1,6 +1,9 @@
 perennial_sources.json
 perennial_sources.csv
 
+# Large citation TSV datasets pulled in for exploration (kept out of git history)
+data/raw/citations/*.tsv
+
 # Python cache files
 **/__pycache__/
 __pycache__/
