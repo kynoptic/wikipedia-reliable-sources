@@ -4,6 +4,14 @@ perennial_sources.csv
 # Large citation TSV datasets pulled in for exploration (kept out of git history)
 data/raw/citations/*.tsv
 
+# Large per-host/per-domain tables generated from the citation dumps
+data/processed/citations_by_host.csv
+data/processed/citations_by_domain.csv
+
+# Python virtual environments
+.venv/
+venv/
+
 # Python cache files
 **/__pycache__/
 __pycache__/

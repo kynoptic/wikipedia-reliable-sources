@@ -1,4 +1,5 @@
 requests
 mwparserfromhell
 beautifulsoup4
+tldextract
 pytest

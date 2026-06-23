@@ -1,3 +1,5 @@
+import csv
+import json
 import sys
 from pathlib import Path
 from typing import Any
@@ -19,13 +21,13 @@ class DummyResponse:
 
 
 def test_fetch_category_members_paginates(monkeypatch: Any) -> None:
-    """_fetch_category_members handles MediaWiki pagination."""
+    """_fetch_category_members paginates and captures page ids."""
 
     page1 = {
         "query": {
             "categorymembers": [
-                {"title": "A", "ns": 0},
-                {"title": "Talk:B", "ns": 1},
+                {"pageid": 11, "title": "A", "ns": 0},
+                {"pageid": 22, "title": "Talk:B", "ns": 1},
             ]
         },
         "continue": {"cmcontinue": "token"},
@@ -33,7 +35,7 @@ def test_fetch_category_members_paginates(monkeypatch: Any) -> None:
     page2 = {
         "query": {
             "categorymembers": [
-                {"title": "C", "ns": 0},
+                {"pageid": 33, "title": "C", "ns": 0},
             ]
         }
     }
@@ -48,6 +50,29 @@ def test_fetch_category_members_paginates(monkeypatch: Any) -> None:
 
     result = fa._fetch_category_members("Good articles")
 
-    assert result == ["A", "C"]
+    assert result == [
+        {"pageid": "11", "title": "A"},
+        {"pageid": "33", "title": "C"},
+    ]
+    assert calls[0]["cmprop"] == "ids|title"
     assert calls[0].get("cmcontinue") is None
     assert calls[1].get("cmcontinue") == "token"
+
+
+def test_fetch_good_and_featured_writes_json_and_csv(monkeypatch: Any, tmp_path: Path) -> None:
+    """fetch_good_and_featured writes title-only JSON plus page-id CSVs."""
+
+    members = {
+        "Good articles": [{"pageid": "1", "title": "Anarchism"}],
+        "Featured articles": [{"pageid": "25", "title": "Autism"}],
+    }
+    monkeypatch.setattr(fa, "_fetch_category_members", lambda cat: members[cat])
+
+    fa.fetch_good_and_featured(tmp_path)
+
+    assert json.loads((tmp_path / "good_articles.json").read_text()) == ["Anarchism"]
+
+    with (tmp_path / "featured-articles.csv").open(newline="") as f:
+        rows = list(csv.DictReader(f))
+    assert rows[0]["pageid"] == "25"
+    assert rows[0]["title"] == "Autism"
