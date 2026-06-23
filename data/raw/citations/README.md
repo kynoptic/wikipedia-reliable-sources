@@ -33,19 +33,19 @@ source.
 
 ### Committed files
 
-* **[`featured-articles.csv`](./featured-articles.csv)** – Featured article list
-  with `number, title, pageid, namespace, length, touched` columns.
-* **[`good-articles.csv`](./good-articles.csv)** – Good article list, same
-  columns as the featured list.
 * **`flow_[e084a770]_enwiki_2016-06-01_CS1_citations_Flow.zip`** – Flow pipeline
   artifact bundle (a `.json5` flow definition plus an `artifact_*.data` blob).
 
 ### Untracked files (git-ignored — see [`/.gitignore`](../../../.gitignore))
 
-The bulk `*.tsv` dumps total ~5.4 GB and are kept out of git history. Restore
+The bulk `*.tsv` dumps total ~5.4 GB and are kept out of git history; restore
 them from the archive copy if missing (these specific files are not published on
-Zenodo — see [Provenance](#provenance)).
+Zenodo — see [Provenance](#provenance)). The two article lists are small but
+likewise untracked — regenerate them with `python -m core.fetch_articles`.
 
+* **`featured-articles.csv`** / **`good-articles.csv`** – Featured/Good article
+  lists with `number, title, pageid, namespace, length, touched` columns; joined
+  on `pageid` by [`core.process_citations`](../../../core/process_citations.py).
 * **`wikipedia-citations_enwiki.tsv`** (~298 MB) – Citation identifiers per
   revision: `page_id, page_title, rev_id, timestamp, type, id` (e.g. `doi`).
 * **`wikipedia-citations_enwiki 2.tsv`** (~393 MB) – Variant of the above.
