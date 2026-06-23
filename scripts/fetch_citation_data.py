@@ -49,33 +49,33 @@ class Dataset:
 
 DATASETS: list[Dataset] = [
     Dataset(
-        "wikipedia-citations_enwiki_2016-06-01_CS1_citations.tsv",
+        "zenodo-55004/enwiki_2016-06-01_CS1_citations.tsv",
         "https://zenodo.org/api/records/55004/files/"
         "enwiki_2016-06-01_CS1_citations.tsv.bz2/content",
         "bz2",
         "Delpeuch, Structured citations in the English Wikipedia (Zenodo 55004)",
     ),
     Dataset(
-        "wikipedia-citations_enwiki.tsv",
+        "figshare-1299540/enwiki.tsv",
         "https://ndownloader.figshare.com/files/10843094",
         "tar.gz",
         "Halfaker et al., Citations with identifiers in Wikipedia (figshare 1299540)",
         member="enwiki.tsv",
     ),
     Dataset(
-        "wikipedia-citations_enwiki 2.tsv",
+        "figshare-6819710/enwiki.tsv",
         "https://ndownloader.figshare.com/files/12403163",
         "gz",
         "Redi & Taraborelli, Accessibility and topics of citations (figshare 6819710)",
     ),
     Dataset(
-        "wikipedia-citations_enwiki_20161101_headings.tsv",
+        "figshare-4296476/enwiki_20161101_headings.tsv",
         "https://ndownloader.figshare.com/files/7007114",
         "bz2",
         "Farooqui (WMF), Wikipedia Article Section Headings (figshare 4296476)",
     ),
     Dataset(
-        "wikipedia-citations_page2cat.tsv",
+        "corradomonti/page2cat.tsv",
         "https://github.com/corradomonti/wikipedia-categories/"
         "releases/download/enwiki-20160407/page2cat.tsv.gz",
         "gz",
@@ -126,9 +126,9 @@ def restore_dataset(ds: Dataset, dest_dir: Path, force: bool = False) -> bool:
     if out.exists() and not force:
         print(f"skip   {ds.target} (already present)")
         return False
-    dest_dir.mkdir(parents=True, exist_ok=True)
+    out.parent.mkdir(parents=True, exist_ok=True)
     print(f"fetch  {ds.target}\n         from {ds.source}")
-    with tempfile.NamedTemporaryFile(dir=dest_dir, delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(dir=out.parent, delete=False) as tmp:
         tmp_path = Path(tmp.name)
     try:
         _download(ds.url, tmp_path)

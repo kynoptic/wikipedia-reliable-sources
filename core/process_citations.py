@@ -273,7 +273,7 @@ def rank_by_count(data: list[dict], limit: int = 50) -> list[dict]:
 
 if __name__ == "__main__":
     citations_dir = Path("data/raw/citations")
-    tsv_path = citations_dir / "wikipedia-citations_enwiki_2016-06-01_CS1_citations.tsv"
+    tsv_path = citations_dir / "zenodo-55004" / "enwiki_2016-06-01_CS1_citations.tsv"
     featured_path = citations_dir / "featured-articles.csv"
     good_path = citations_dir / "good-articles.csv"
 

@@ -2,7 +2,7 @@ perennial_sources.json
 perennial_sources.csv
 
 # Large citation TSV datasets pulled in for exploration (kept out of git history)
-data/raw/citations/*.tsv
+data/raw/citations/**/*.tsv
 
 # Article lists kept out of git — regenerable via core.fetch_articles
 data/raw/citations/featured-articles.csv

@@ -16,16 +16,18 @@ not mirrored in git. Restore all of the bulk dumps with one command:
 python -m scripts.fetch_citation_data        # --check verifies URLs, --force re-fetches
 ```
 
-The table gives the origin and the per-file restore for reference; details and
+Each bulk file keeps its exact published name in a subfolder named for its source
+(so the two same-named `enwiki.tsv` files don't collide). The table gives the
+origin and the per-file restore for reference; details and
 regeneration-from-scratch steps follow.
 
 | File | Source dataset | Restore |
 |---|---|---|
-| `…_2016-06-01_CS1_citations.tsv` | Delpeuch, *Structured citations in the English Wikipedia* — [Zenodo 55004](https://doi.org/10.5281/zenodo.55004) | Download `enwiki_2016-06-01_CS1_citations.tsv.bz2` (the byte-exact original) and `bunzip2` |
-| `…_enwiki.tsv` | Halfaker et al., *Citations with identifiers in Wikipedia* — [figshare 1299540](https://doi.org/10.6084/m9.figshare.1299540) (2018-03-01 dump) | Download `enwiki.tsv.tar.gz` |
-| `…_enwiki 2.tsv` | Redi & Taraborelli, *Accessibility and topics of citations with identifiers in Wikipedia* — [figshare 6819710](https://doi.org/10.6084/m9.figshare.6819710) | Download `enwiki.tsv.gz` |
-| `…_20161101_headings.tsv` | Farooqui (WMF), *Wikipedia Article Section Headings* — [figshare 4296476](https://doi.org/10.6084/m9.figshare.4296476) | Download the enwiki headings file |
-| `…_page2cat.tsv` | [`corradomonti/wikipedia-categories`](https://github.com/corradomonti/wikipedia-categories) (`page2cat.tsv.gz`, built from enwiki-20160407) | Download the repo's released `page2cat.tsv.gz` |
+| `zenodo-55004/enwiki_2016-06-01_CS1_citations.tsv` | Delpeuch, *Structured citations in the English Wikipedia* — [Zenodo 55004](https://doi.org/10.5281/zenodo.55004) | Download `enwiki_2016-06-01_CS1_citations.tsv.bz2` (the byte-exact original) and `bunzip2` |
+| `figshare-1299540/enwiki.tsv` | Halfaker et al., *Citations with identifiers in Wikipedia* — [figshare 1299540](https://doi.org/10.6084/m9.figshare.1299540) (2018-03-01 dump) | Download `enwiki.tsv.tar.gz` |
+| `figshare-6819710/enwiki.tsv` | Redi & Taraborelli, *Accessibility and topics of citations with identifiers in Wikipedia* — [figshare 6819710](https://doi.org/10.6084/m9.figshare.6819710) | Download `enwiki.tsv.gz` |
+| `figshare-4296476/enwiki_20161101_headings.tsv` | Farooqui (WMF), *Wikipedia Article Section Headings* — [figshare 4296476](https://doi.org/10.6084/m9.figshare.4296476) | Download the enwiki headings file |
+| `corradomonti/page2cat.tsv` | [`corradomonti/wikipedia-categories`](https://github.com/corradomonti/wikipedia-categories) (`page2cat.tsv.gz`, built from enwiki-20160407) | Download the repo's released `page2cat.tsv.gz` |
 | `featured-articles.csv` / `good-articles.csv` | [PetScan](https://petscan.wmcloud.org/) category export (~2020-03-30) | `python -m core.fetch_articles` |
 
 Notes:
@@ -35,10 +37,10 @@ Notes:
   (the `2016-06-01` in the name is the Zenodo publication date — the dump itself
   is enwiki-20160501). The earlier attribution to Singh, West & Colavizza was
   incorrect.
-* `enwiki.tsv` is [`mwcites`](https://github.com/mediawiki-utilities/python-mwcites)
-  identifier output (`doi, isbn, pmid, pmc, arxiv`); `enwiki 2.tsv` enriches it
-  with the ORES `drafttopic`/`articletopic` taxonomy and Unpaywall open-access
-  status.
+* `figshare-1299540/enwiki.tsv` is [`mwcites`](https://github.com/mediawiki-utilities/python-mwcites)
+  identifier output (`doi, isbn, pmid, pmc, arxiv`); `figshare-6819710/enwiki.tsv`
+  enriches it with the ORES `drafttopic`/`articletopic` taxonomy and Unpaywall
+  open-access status.
 
 To regenerate from scratch rather than re-download, run the source tool against
 the matching dump. The mid-2016 enwiki dumps are purged from
@@ -62,24 +64,29 @@ them with `python -m scripts.fetch_citation_data` (see [Provenance](#provenance)
 The two article lists are likewise untracked — regenerate them with
 `python -m core.fetch_articles`.
 
+Top level:
+
 * **`featured-articles.csv`** / **`good-articles.csv`** – Featured/Good article
   lists with `number, title, pageid, namespace, length, touched` columns; joined
   on `pageid` by [`core.process_citations`](../../../core/process_citations.py).
-* **`wikipedia-citations_enwiki.tsv`** (~298 MB) – Citation identifiers per
+
+Per-source subfolders:
+
+* **`zenodo-55004/enwiki_2016-06-01_CS1_citations.tsv`** (~3.5 GB) – Full CS1
+  citation records. No header in the file; the official columns (from the source
+  dataset's `header.tsv`) are `Revision id, Article id, Timestamp, Article title,
+  Template name, Parsed metadata`, the last being a JSON object per citation.
+  Verified byte-identical to the published Zenodo dataset.
+* **`figshare-1299540/enwiki.tsv`** (~298 MB) – Citation identifiers per
   revision: `page_id, page_title, rev_id, timestamp, type, id` (e.g. `doi`).
-* **`wikipedia-citations_enwiki 2.tsv`** (~393 MB) – The same identifiers
-  enriched with article topic and open-access status: `page_id, page_name,
-  revision_id, timestamp, publication_type, publication_id, topic, open_access,
+* **`figshare-6819710/enwiki.tsv`** (~393 MB) – The same identifiers enriched
+  with article topic and open-access status: `page_id, page_name, revision_id,
+  timestamp, publication_type, publication_id, topic, open_access,
   open_access_url`.
-* **`wikipedia-citations_enwiki_2016-06-01_CS1_citations.tsv`** (~3.5 GB) – Full
-  CS1 citation records. No header in the file; the official columns (from the
-  source dataset's `header.tsv`) are `Revision id, Article id, Timestamp, Article
-  title, Template name, Parsed metadata`, the last being a JSON object per
-  citation. Verified byte-identical to the published Zenodo dataset.
-* **`wikipedia-citations_enwiki_20161101_headings.tsv`** (~1.1 GB) – Article
+* **`figshare-4296476/enwiki_20161101_headings.tsv`** (~1.1 GB) – Article
   section headings: `page_id, page_title, page_ns, heading_level, heading_text`.
-* **`wikipedia-citations_page2cat.tsv`** (~363 MB) – Page-to-category mapping,
-  one page per row with its categories tab-separated.
+* **`corradomonti/page2cat.tsv`** (~363 MB) – Page-to-category mapping, one page
+  per row with its categories tab-separated.
 
 ## Original processing pipeline
 

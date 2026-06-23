@@ -21,7 +21,7 @@ from core.process_citations import (
 
 REAL_TSV = (
     Path(__file__).resolve().parents[1]
-    / "data/raw/citations/wikipedia-citations_enwiki_2016-06-01_CS1_citations.tsv"
+    / "data/raw/citations/zenodo-55004/enwiki_2016-06-01_CS1_citations.tsv"
 )
 
 

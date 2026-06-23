@@ -51,13 +51,14 @@ def test_restore_dataset_skips_existing(tmp_path: Path, monkeypatch: Any) -> Non
     assert restore_dataset(ds, tmp_path) is False
 
 
-def test_restore_dataset_fetches_and_decompresses(tmp_path: Path, monkeypatch: Any) -> None:
+def test_restore_dataset_fetches_into_source_subfolder(tmp_path: Path, monkeypatch: Any) -> None:
     def fake_download(url: str, dest: Path) -> None:
         dest.write_bytes(gzip.compress(b"fetched\tcontent\n"))
 
     monkeypatch.setattr(fcd, "_download", fake_download)
-    ds = Dataset("target.tsv", "http://example/x", "gz", "src")
+    ds = Dataset("figshare-1299540/enwiki.tsv", "http://example/x", "gz", "src")
     assert restore_dataset(ds, tmp_path) is True
-    assert (tmp_path / "target.tsv").read_bytes() == b"fetched\tcontent\n"
-    leftover = [p.name for p in tmp_path.iterdir() if p.name != "target.tsv"]
+    out = tmp_path / "figshare-1299540" / "enwiki.tsv"
+    assert out.read_bytes() == b"fetched\tcontent\n"
+    leftover = [p.name for p in out.parent.iterdir() if p.name != "enwiki.tsv"]
     assert leftover == [], f"temp files left behind: {leftover}"
