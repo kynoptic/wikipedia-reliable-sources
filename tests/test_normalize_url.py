@@ -21,6 +21,12 @@ def test_keep_query_params():
     assert canonicalize_url(url, config) == "https://example.com?a=2&b=1"
 
 
+def test_canonicalize_url_handles_malformed_url():
+    # urlparse raises ValueError on a bad bracketed IPv6 netloc; the pipeline
+    # must not abort on a single malformed URL from wikitext.
+    assert canonicalize_url("http://[malformed", NormalizationConfig()) == ""
+
+
 def test_decompose_host_multi_label_suffix():
     parts = decompose_host("news.bbc.co.uk")
     assert (parts.host, parts.subdomain, parts.domain, parts.suffix) == (

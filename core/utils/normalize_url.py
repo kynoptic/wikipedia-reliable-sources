@@ -74,7 +74,12 @@ def canonicalize_url(url: str, config: NormalizationConfig) -> str:
     """Canonicalize a URL according to the provided configuration."""
     if not url:
         return url
-    parsed = urlparse(url)
+    try:
+        parsed = urlparse(url)
+    except ValueError:
+        # urlparse rejects malformed netlocs (e.g. bad bracketed IPv6); a single
+        # bad URL from wikitext must not abort the cleaning pipeline.
+        return ""
 
     host = parsed.hostname or ""
     if config.strip_www and host.startswith("www."):
