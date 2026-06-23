@@ -45,10 +45,13 @@ Notes:
 To regenerate from scratch rather than re-download, run the source tool against
 the matching dump. The mid-2016 enwiki dumps are purged from
 `dumps.wikimedia.org` but archived on the Internet Archive:
-[`enwiki-20160501`](https://archive.org/details/enwiki-20160501) and
-[`enwiki-20161101`](https://archive.org/details/enwiki-20161101). A fresh run may
-not be byte-identical to the published files (library/Lua drift), so prefer
-re-downloading.
+[`enwiki-20160407`](https://archive.org/details/enwiki-20160407) (page2cat),
+[`enwiki-20160501`](https://archive.org/details/enwiki-20160501) (CS1), and
+[`enwiki-20161101`](https://archive.org/details/enwiki-20161101) (headings). A
+fresh run may not be byte-identical to the published files (library/Lua drift),
+so prefer re-downloading. The page2cat tool is mirrored at
+[`kynoptic/wikipedia-categories`](https://github.com/kynoptic/wikipedia-categories)
+so it survives if the upstream personal repo disappears.
 
 ## Contents
 
