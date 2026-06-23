@@ -25,9 +25,9 @@ REAL_TSV = (
 )
 
 
-def _row(citation_id, page_id, url, cite_type="cite web"):
+def _row(revision_id, page_id, url, cite_type="cite web"):
     return CitationRow(
-        citation_id=citation_id,
+        revision_id=revision_id,
         page_id=page_id,
         timestamp="2016-04-22T10:19:33Z",
         page_title="Example",

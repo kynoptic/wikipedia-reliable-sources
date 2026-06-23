@@ -30,7 +30,7 @@ DEFAULT_ALIAS_PATH = Path("data/alias_map.json")
 
 _CITATION_COLUMNS = 6
 
-# A record begins with "<citation_id>\t<page_id>\t"; everything after that may
+# A record begins with "<revision_id>\t<page_id>\t"; everything after that may
 # contain embedded newlines (the cite_type / JSON column), so lines that do not
 # match are continuations of the current record.
 _RECORD_START = re.compile(r"^\d+\t\d+\t")
@@ -40,7 +40,7 @@ _RECORD_START = re.compile(r"^\d+\t\d+\t")
 class CitationRow:
     """One parsed citation from the CS1 citations TSV."""
 
-    citation_id: str
+    revision_id: str
     page_id: str
     timestamp: str
     page_title: str
@@ -97,7 +97,7 @@ def _parse_record(record: str) -> CitationRow | None:
     parts = record.split("\t", _CITATION_COLUMNS - 1)
     if len(parts) < _CITATION_COLUMNS:
         return None
-    citation_id, page_id, timestamp, page_title, cite_type, blob = parts
+    revision_id, page_id, timestamp, page_title, cite_type, blob = parts
     try:
         # strict=False tolerates raw control chars (e.g. tabs/newlines) that the
         # maxsplit above preserves inside the JSON column.
@@ -105,7 +105,7 @@ def _parse_record(record: str) -> CitationRow | None:
     except (json.JSONDecodeError, ValueError):
         return None
     return CitationRow(
-        citation_id=citation_id,
+        revision_id=revision_id,
         page_id=page_id,
         timestamp=timestamp,
         page_title=page_title,

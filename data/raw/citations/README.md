@@ -61,9 +61,15 @@ likewise untracked — regenerate them with `python -m core.fetch_articles`.
   on `pageid` by [`core.process_citations`](../../../core/process_citations.py).
 * **`wikipedia-citations_enwiki.tsv`** (~298 MB) – Citation identifiers per
   revision: `page_id, page_title, rev_id, timestamp, type, id` (e.g. `doi`).
-* **`wikipedia-citations_enwiki 2.tsv`** (~393 MB) – Variant of the above.
-* **`wikipedia-citations_enwiki_2016-06-01_CS1_citations.tsv`** (~3.5 GB) –
-  Full CS1 citation records; final column is a JSON object per citation.
+* **`wikipedia-citations_enwiki 2.tsv`** (~393 MB) – The same identifiers
+  enriched with article topic and open-access status: `page_id, page_name,
+  revision_id, timestamp, publication_type, publication_id, topic, open_access,
+  open_access_url`.
+* **`wikipedia-citations_enwiki_2016-06-01_CS1_citations.tsv`** (~3.5 GB) – Full
+  CS1 citation records. No header in the file; the official columns (from the
+  source dataset's `header.tsv`) are `Revision id, Article id, Timestamp, Article
+  title, Template name, Parsed metadata`, the last being a JSON object per
+  citation. Verified byte-identical to the published Zenodo dataset.
 * **`wikipedia-citations_enwiki_20161101_headings.tsv`** (~1.1 GB) – Article
   section headings: `page_id, page_title, page_ns, heading_level, heading_text`.
 * **`wikipedia-citations_page2cat.tsv`** (~363 MB) – Page-to-category mapping,
