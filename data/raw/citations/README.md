@@ -32,6 +32,34 @@ back from the archive if missing.
 * **`wikipedia-citations_page2cat.tsv`** (~363 MB) – Page-to-category mapping,
   one page per row with its categories tab-separated.
 
+## Original processing pipeline
+
+The Flow zip is an exported **Google Cloud Dataprep / Trifacta** flow
+(`trifactaVersion 8.10.0`, exported 2022-01-01). It is the *original* analysis
+these files fed into — a predecessor to this repo's Python pipeline in
+[`/core`](../../../core/). Reconstructed from the recipe steps, it ran four
+chained recipes:
+
+1. **`2016 citations`** – Loads `enwiki_2016-06-01_CS1_citations.tsv(.bz2)`,
+   parses each citation's JSON metadata blob, extracts the `URL`, and decomposes
+   it into `host_URL`, `subdomain_URL`, `domain_URL`, and `suffix_URL` via
+   regex. The template-name normalization table (`artifact_*.data`, e.g.
+   `"Cite book " → "cite book"`) canonicalizes citation types here.
+2. **`Citations tagged FA & GA`** – Joins each citing article's page id against
+   `featured-articles.csv` and `good-articles.csv` (lookup on `pageid`) to derive
+   `isFeaturedArticle` / `isGoodArticle` flags, and against the Perennial sources
+   sheet for reliability status.
+3. **`Pivot by host`** – Groups by `(host_URL, subdomain_URL, domain_URL,
+   suffix_URL)` and counts total citations, citations from FA, citations from GA,
+   and distinct articles.
+4. **`Pivot by domain`** – Same aggregation at domain granularity.
+
+Net result: per-host and per-domain citation-frequency tables tagged with
+FA/GA usage and perennial-source reliability — i.e. "which sources the best
+articles cite most," the raw signal for ranking source reliability in the
+Goggle. This repo's `core/` reimplements the same idea from live wikitext
+rather than the static 2016 dump.
+
 ## Usage
 
 Exploration data only — treat as read-only. The large TSVs are git-ignored, so
