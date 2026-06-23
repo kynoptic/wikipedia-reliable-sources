@@ -9,8 +9,14 @@ project's own fetching scripts.
 ## Provenance
 
 These files were assembled from **six independent published datasets** spanning
-2016–2020, not one source — each is re-downloadable from its archive. The table
-gives the origin and the fastest way to restore each file; details and
+2016–2020, not one source — each is re-downloadable from its archive, so they are
+not mirrored in git. Restore all of the bulk dumps with one command:
+
+```bash
+python -m scripts.fetch_citation_data        # --check verifies URLs, --force re-fetches
+```
+
+The table gives the origin and the per-file restore for reference; details and
 regeneration-from-scratch steps follow.
 
 | File | Source dataset | Restore |
@@ -52,9 +58,9 @@ re-downloading.
 ### Untracked files (git-ignored — see [`/.gitignore`](../../../.gitignore))
 
 The bulk `*.tsv` dumps total ~5.4 GB and are kept out of git history; restore
-them from the archive copy if missing (these specific files are not published on
-Zenodo — see [Provenance](#provenance)). The two article lists are small but
-likewise untracked — regenerate them with `python -m core.fetch_articles`.
+them with `python -m scripts.fetch_citation_data` (see [Provenance](#provenance)).
+The two article lists are likewise untracked — regenerate them with
+`python -m core.fetch_articles`.
 
 * **`featured-articles.csv`** / **`good-articles.csv`** – Featured/Good article
   lists with `number, title, pageid, namespace, length, touched` columns; joined
