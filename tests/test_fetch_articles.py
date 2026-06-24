@@ -23,6 +23,24 @@ class DummyResponse:
         pass
 
 
+def test_api_get_honors_fractional_retry_after(monkeypatch: Any) -> None:
+    calls = {"n": 0}
+    slept: list = []
+
+    def fake_get(url, params=None, timeout=None, headers=None):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            r = DummyResponse({}, status_code=429)
+            r.headers = {"Retry-After": "2.5"}  # fractional — int parse would miss it
+            return r
+        return DummyResponse({"ok": True})
+
+    monkeypatch.setattr(fa.requests, "get", fake_get)
+    monkeypatch.setattr(fa.time, "sleep", lambda s: slept.append(s))
+    assert fa._api_get({}) == {"ok": True}
+    assert slept == [2.5]
+
+
 def test_fetch_category_members_paginates(monkeypatch: Any) -> None:
     """_fetch_category_members paginates and captures page ids."""
 
