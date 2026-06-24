@@ -47,8 +47,8 @@ def _get_json(url: str, params: dict) -> dict:
             continue
         resp.raise_for_status()
         return resp.json()
-    resp.raise_for_status()
-    return resp.json()
+    resp.raise_for_status()  # retries exhausted; 429/503 always raises here
+    return resp.json()  # unreachable, kept for return-type completeness
 
 STATUS_LABELS = {
     "gr": "generally reliable",
@@ -210,6 +210,8 @@ def bridge(
 
     A source's counts are summed across its domain variants (e.g. ``bbc.com`` +
     ``bbc.co.uk``); the reported domain is the most-cited variant.
+    ``distinct_articles`` is summed too, so an article citing more than one
+    variant is counted once per variant (a slight over-count for such sources).
     """
     rows = []
     for name, status in reliability.items():

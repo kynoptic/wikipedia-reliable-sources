@@ -41,8 +41,8 @@ def _api_get(params: dict) -> dict:
             continue
         resp.raise_for_status()
         return resp.json()
-    resp.raise_for_status()  # retries exhausted; surface the last error
-    return resp.json()
+    resp.raise_for_status()  # retries exhausted; 429/503 always raises here
+    return resp.json()  # unreachable, kept for return-type completeness
 
 
 def _fetch_category_members(category: str) -> List[dict]:

@@ -162,6 +162,7 @@ def _extract_zip_dir(src: Path, out: Path) -> None:
     if out.exists():
         shutil.rmtree(out)
     with zipfile.ZipFile(src) as zf:
+        # extractall rejects path-traversal members on Python 3.12+ (the supported runtime)
         zf.extractall(out.parent)
 
 
