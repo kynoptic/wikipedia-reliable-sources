@@ -53,6 +53,59 @@ def test_restore_dataset_skips_existing(tmp_path: Path, monkeypatch: Any) -> Non
     assert restore_dataset(ds, tmp_path) is False
 
 
+def test_download_resumes_after_broken_connection(tmp_path: Path, monkeypatch: Any) -> None:
+    full = bytes(i % 256 for i in range(1000))
+    state = {"calls": 0}
+
+    class FirstResp:  # delivers part of the body, then drops the connection
+        status_code = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def raise_for_status(self):
+            pass
+
+        def iter_content(self, _n):
+            yield full[:400]
+            raise fcd.requests.exceptions.ChunkedEncodingError("drop")
+
+    class ResumeResp:
+        status_code = 206
+
+        def __init__(self, start):
+            self.start = start
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def raise_for_status(self):
+            pass
+
+        def iter_content(self, _n):
+            yield full[self.start:]
+
+    def fake_get(url, headers=None, stream=True, timeout=None):
+        state["calls"] += 1
+        rng = (headers or {}).get("Range")
+        if rng:
+            return ResumeResp(int(rng.removeprefix("bytes=").rstrip("-")))
+        return FirstResp()
+
+    monkeypatch.setattr(fcd.requests, "get", fake_get)
+    monkeypatch.setattr(fcd.time, "sleep", lambda _s: None)
+    dest = tmp_path / "f.bin"
+    fcd._download("http://x", dest)
+    assert dest.read_bytes() == full
+    assert state["calls"] == 2  # initial failure + one resumed request
+
+
 def test_restore_dataset_extracts_zip_dir(tmp_path: Path, monkeypatch: Any) -> None:
     def fake_download(url: str, dest: Path) -> None:
         with zipfile.ZipFile(dest, "w") as zf:

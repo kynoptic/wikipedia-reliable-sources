@@ -16,6 +16,8 @@ data/raw/citations/**/*.parquet
 # Large per-host/per-domain tables generated from the citation dumps
 data/processed/citations_by_host.csv
 data/processed/citations_by_domain.csv
+data/processed/citations_2023_by_host.csv
+data/processed/citations_2023_by_domain.csv
 
 # Python virtual environments
 .venv/

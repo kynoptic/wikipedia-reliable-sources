@@ -25,6 +25,7 @@ import shutil
 import sys
 import tarfile
 import tempfile
+import time
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -94,13 +95,39 @@ CURRENT_2023 = Dataset(
 )
 
 
+_DOWNLOAD_RETRIES = 8
+
+
 def _download(url: str, dest: Path) -> None:
-    """Stream ``url`` to ``dest``."""
-    with requests.get(url, headers=HEADERS, stream=True, timeout=60) as resp:
-        resp.raise_for_status()
-        with dest.open("wb") as f:
-            for chunk in resp.iter_content(_CHUNK):
-                f.write(chunk)
+    """Stream ``url`` to ``dest``, resuming on dropped connections.
+
+    Multi-GB downloads (the 2023 dataset is ~7.3 GB) frequently break mid-stream;
+    on a transport error, retry from the bytes already written using an HTTP
+    ``Range`` request. Falls back to a fresh download if the server ignores Range.
+    """
+    pos = dest.stat().st_size if dest.exists() else 0
+    for attempt in range(_DOWNLOAD_RETRIES):
+        headers = dict(HEADERS)
+        if pos:
+            headers["Range"] = f"bytes={pos}-"
+        try:
+            with requests.get(url, headers=headers, stream=True, timeout=(30, 300)) as resp:
+                resp.raise_for_status()
+                if pos and resp.status_code != 206:  # server ignored Range
+                    pos = 0
+                with dest.open("ab" if pos else "wb") as f:
+                    for chunk in resp.iter_content(_CHUNK):
+                        f.write(chunk)
+            return
+        except (
+            requests.exceptions.ChunkedEncodingError,
+            requests.exceptions.ConnectionError,
+            requests.exceptions.Timeout,
+        ):
+            pos = dest.stat().st_size if dest.exists() else 0
+            if attempt == _DOWNLOAD_RETRIES - 1:
+                raise
+            time.sleep(min(2**attempt, 30))
 
 
 def _decompress(src: Path, archive: str, dest: Path, member: str | None) -> None:
