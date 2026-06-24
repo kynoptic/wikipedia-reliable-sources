@@ -38,8 +38,11 @@ def _get_json(url: str, params: dict) -> dict:
     for _ in range(_MAX_RETRIES):
         resp = requests.get(url, params=params, headers=HEADERS, timeout=30)
         if resp.status_code in (429, 503):
-            retry_after = resp.headers.get("Retry-After", "")
-            time.sleep(float(retry_after) if retry_after.isdigit() else delay)
+            try:
+                wait = float(resp.headers.get("Retry-After", ""))
+            except ValueError:
+                wait = delay
+            time.sleep(wait)
             delay = min(delay * 2, 30.0)
             continue
         resp.raise_for_status()
@@ -169,8 +172,8 @@ def _strip_qualifier(name: str) -> str:
     return _QUALIFIER_RE.sub("", name)
 
 
-def resolve_domains(names: list[str]) -> dict[str, str]:
-    """Map source names to their official-website registrable domain via Wikidata.
+def resolve_domains(names: list[str]) -> dict[str, set[str]]:
+    """Map source names to their official-website registrable domain(s) via Wikidata.
 
     Perennial-source names often carry a parenthetical qualifier (``The New York
     Times (NYT)``) that is not an article title, so unresolved names are retried
