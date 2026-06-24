@@ -46,9 +46,9 @@ class SourceEntry:
 
 
 def clean_source_name(name: str) -> str:
-    """Remove table sorting metadata and trim whitespace."""
+    """Remove table sorting metadata, leaked cell separators, and trim whitespace."""
     name = _SORT_RE.sub("", name)
-    return name.strip()
+    return name.lstrip("|").strip()
 
 
 def clean_entries(entries: List[SourceEntry]) -> List[SourceEntry]:
@@ -71,7 +71,7 @@ def clean_entries(entries: List[SourceEntry]) -> List[SourceEntry]:
 def validate_entries(entries: List[SourceEntry]) -> None:
     """Check a few well-known sources to catch parsing issues."""
     checks = {
-        "ABC News (US)": "gr",
+        "ABC News (USA)": "gr",
         "Daily Mail (MailOnline)": "d",
     }
     for name, status in checks.items():
