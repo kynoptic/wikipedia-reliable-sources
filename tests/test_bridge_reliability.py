@@ -109,6 +109,24 @@ def test_qids_to_domains_keeps_tld_variants(monkeypatch: Any) -> None:
     assert br._qids_to_domains(["Q9531"]) == {"Q9531": {"bbc.com", "bbc.co.uk"}}
 
 
+def test_get_json_honors_fractional_retry_after(monkeypatch: Any) -> None:
+    calls = {"n": 0}
+    slept: list = []
+
+    def fake_get(url, params=None, headers=None, timeout=None):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            r = Resp({}, status_code=429)
+            r.headers = {"Retry-After": "1.5"}  # fractional — int parse would miss it
+            return r
+        return Resp({"ok": True})
+
+    monkeypatch.setattr(br.requests, "get", fake_get)
+    monkeypatch.setattr(br.time, "sleep", lambda s: slept.append(s))
+    assert br._get_json("http://x", {}) == {"ok": True}
+    assert slept == [1.5]
+
+
 def test_strip_qualifier() -> None:
     assert br._strip_qualifier("The New York Times (NYT)") == "The New York Times"
     assert br._strip_qualifier("BBC (British Broadcasting Corporation)") == "BBC"

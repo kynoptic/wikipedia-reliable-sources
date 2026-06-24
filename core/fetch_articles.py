@@ -32,8 +32,11 @@ def _api_get(params: dict) -> dict:
     for _ in range(_MAX_RETRIES):
         resp = requests.get(API_URL, params=params, timeout=30, headers=HEADERS)
         if resp.status_code in (429, 503):
-            retry_after = resp.headers.get("Retry-After", "")
-            time.sleep(float(retry_after) if retry_after.isdigit() else delay)
+            try:
+                wait = float(resp.headers.get("Retry-After", ""))
+            except ValueError:
+                wait = delay
+            time.sleep(wait)
             delay = min(delay * 2, 30.0)
             continue
         resp.raise_for_status()
