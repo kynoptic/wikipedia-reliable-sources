@@ -46,7 +46,7 @@ SAMPLE_WIKITEXT = (
     "|-\n"
     "! Name !! Status !! Discussion !! Last !! Notes\n"
     "\n|- class=\"s-gr\" id=\"abc\"\n"
-    "| [[ABC News (US)]]\n"
+    "| [[ABC News (USA)]]\n"
     "| {{WP:RSPSTATUS|gr}}\n"
     "| Discussion\n"
     "| {{WP:RSPLAST|2023}}\n"
@@ -82,7 +82,7 @@ def test_integration_run(tmp_path: Path, monkeypatch: Any, capsys: Any) -> None:
 
     data = json.loads((tmp_path / "perennial_sources.json").read_text())
     names = {e["source_name"] for e in data}
-    assert {"ABC News (US)", "Daily Mail (MailOnline)"} == names
+    assert {"ABC News (USA)", "Daily Mail (MailOnline)"} == names
 
     csv_lines = (tmp_path / "perennial_sources.csv").read_text().splitlines()
     assert "source_name" in csv_lines[0]

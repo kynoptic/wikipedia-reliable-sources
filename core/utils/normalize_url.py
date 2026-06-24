@@ -5,6 +5,12 @@ from pathlib import Path
 from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
 import json
 
+import tldextract
+
+# Offline mode: use tldextract's bundled Public Suffix List snapshot so
+# decomposition is deterministic and never makes a network call (keeps CI green).
+_EXTRACT = tldextract.TLDExtract(suffix_list_urls=())
+
 
 @dataclass
 class NormalizationConfig:
@@ -18,12 +24,39 @@ class NormalizationConfig:
     aliases: dict | None = None
 
 
+@dataclass
+class HostParts:
+    """A hostname split into Public Suffix List components."""
+
+    host: str       # full hostname as given, e.g. "news.bbc.co.uk"
+    subdomain: str  # "news"
+    domain: str     # "bbc"
+    suffix: str     # "co.uk"
+
+
 def strip_subdomain(hostname: str) -> str:
     """Return hostname without the first subdomain."""
     parts = hostname.split(".")
     if len(parts) > 2:
         return ".".join(parts[-2:])
     return hostname
+
+
+def decompose_host(hostname: str) -> HostParts:
+    """Split ``hostname`` into Public Suffix List components.
+
+    Unlike :func:`strip_subdomain`, this is PSL-aware: ``news.bbc.co.uk`` yields
+    domain ``bbc`` and suffix ``co.uk``. The subdomain is preserved so callers
+    can distinguish ``www.`` / ``mobile.`` hosts; collapse them by grouping on
+    ``(domain, suffix)``.
+    """
+    extracted = _EXTRACT(hostname)
+    return HostParts(
+        host=hostname,
+        subdomain=extracted.subdomain,
+        domain=extracted.domain,
+        suffix=extracted.suffix,
+    )
 
 
 def load_aliases(path: Path) -> dict:
@@ -41,7 +74,12 @@ def canonicalize_url(url: str, config: NormalizationConfig) -> str:
     """Canonicalize a URL according to the provided configuration."""
     if not url:
         return url
-    parsed = urlparse(url)
+    try:
+        parsed = urlparse(url)
+    except ValueError:
+        # urlparse rejects malformed netlocs (e.g. bad bracketed IPv6); a single
+        # bad URL from wikitext must not abort the cleaning pipeline.
+        return ""
 
     host = parsed.hostname or ""
     if config.strip_www and host.startswith("www."):

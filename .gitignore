@@ -1,6 +1,28 @@
 perennial_sources.json
 perennial_sources.csv
 
+# Large citation TSV datasets pulled in for exploration (kept out of git history)
+data/raw/citations/**/*.tsv
+
+# Article lists kept out of git — regenerable via core.fetch_articles
+data/raw/citations/featured-articles.csv
+data/raw/citations/good-articles.csv
+data/raw/citations/current/
+
+# 2023 Parquet dataset extracted from the opt-in zip
+data/raw/citations/zenodo-8107239/
+data/raw/citations/**/*.parquet
+
+# Large per-host/per-domain tables generated from the citation dumps
+data/processed/citations_by_host.csv
+data/processed/citations_by_domain.csv
+data/processed/citations_2023_by_host.csv
+data/processed/citations_2023_by_domain.csv
+
+# Python virtual environments
+.venv/
+venv/
+
 # Python cache files
 **/__pycache__/
 __pycache__/
