@@ -1,4 +1,4 @@
-# API Usage Examples
+# API usage examples
 
 This guide shows how to call the Python modules directly from your own code instead of running the command line wrappers.
 
