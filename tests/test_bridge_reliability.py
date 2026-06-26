@@ -7,6 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import core.bridge_reliability as br
 from core.bridge_reliability import (
     bridge,
+    collapse_by_domain,
     coverage_gaps,
     load_domain_citations,
     load_reliability,
@@ -74,10 +75,27 @@ def test_coverage_gaps_excludes_rated_domains() -> None:
         "nytimes.com": {"total": 100, "fa": 10, "ga": 20, "articles": 50},
         "randomblog.com": {"total": 80, "fa": 0, "ga": 1, "articles": 40},
     }
-    gaps = coverage_gaps(citations, rated_domains={"nytimes.com"}, limit=10)
+    gaps = coverage_gaps(
+        citations, rated_domains={"nytimes.com"}, limit=10, drop_non_editorial=False
+    )
     domains = [g["domain"] for g in gaps]
     assert domains == ["google.com", "randomblog.com"]  # sorted by total, nytimes excluded
     assert gaps[0]["total_citations"] == 500
+
+
+def test_coverage_gaps_drops_non_editorial_infrastructure() -> None:
+    # Archives, databases, and government/edu sites are not rateable editorial
+    # sources; they crowd out the genuinely unrated outlets worth surfacing.
+    citations = {
+        "nih.gov": {"total": 9000, "fa": 1, "ga": 1, "articles": 5000},
+        "archive.org": {"total": 8000, "fa": 1, "ga": 1, "articles": 4000},
+        "worldcat.org": {"total": 7000, "fa": 1, "ga": 1, "articles": 3000},
+        "nla.gov.au": {"total": 6000, "fa": 1, "ga": 1, "articles": 2000},
+        "harvard.edu": {"total": 5000, "fa": 1, "ga": 1, "articles": 1000},
+        "indiatimes.com": {"total": 4000, "fa": 1, "ga": 1, "articles": 900},
+    }
+    gaps = coverage_gaps(citations, rated_domains=set(), limit=10)
+    assert [g["domain"] for g in gaps] == ["indiatimes.com"]  # only editorial outlet survives
 
 
 def test_qids_to_domains_keeps_dominant_root_drops_noise(monkeypatch: Any) -> None:
@@ -107,6 +125,123 @@ def test_qids_to_domains_keeps_tld_variants(monkeypatch: Any) -> None:
         lambda *a, **k: Resp({"entities": {"Q9531": {"claims": {"P856": claims}}}}),
     )
     assert br._qids_to_domains(["Q9531"]) == {"Q9531": {"bbc.com", "bbc.co.uk"}}
+
+
+def test_qids_to_domains_ignores_google_books_archive_links(monkeypatch: Any) -> None:
+    # The Atlantic: its real site appears once, but two Google Books scan links
+    # share the google root and would win a naive most-frequent vote.
+    claims = [
+        {"mainsnak": {"datavalue": {"value": "https://www.theatlantic.com/"}}},
+        {"mainsnak": {"datavalue": {"value": "http://books.google.com/books?id=cN"}}},
+        {"mainsnak": {"datavalue": {"value": "http://books.google.com/books?id=lY"}}},
+    ]
+    monkeypatch.setattr(
+        br.requests,
+        "get",
+        lambda *a, **k: Resp({"entities": {"Q1542536": {"claims": {"P856": claims}}}}),
+    )
+    assert br._qids_to_domains(["Q1542536"]) == {"Q1542536": {"theatlantic.com"}}
+
+
+def test_qids_to_domains_skips_deprecated_rank_claims(monkeypatch: Any) -> None:
+    # National Geographic: the archive scan links are flagged deprecated on
+    # Wikidata, leaving only the live site at normal rank.
+    claims = [
+        {"rank": "normal", "mainsnak": {"datavalue": {"value": "https://www.nationalgeographic.com/"}}},
+        {"rank": "deprecated", "mainsnak": {"datavalue": {"value": "http://natgeo.galegroup.com/x"}}},
+        {"rank": "deprecated", "mainsnak": {"datavalue": {"value": "http://example-mirror.com/y"}}},
+    ]
+    monkeypatch.setattr(
+        br.requests,
+        "get",
+        lambda *a, **k: Resp({"entities": {"Q5973845": {"claims": {"P856": claims}}}}),
+    )
+    assert br._qids_to_domains(["Q5973845"]) == {"Q5973845": {"nationalgeographic.com"}}
+
+
+def test_qids_to_domains_prefers_preferred_rank(monkeypatch: Any) -> None:
+    # A single preferred-rank claim outweighs more numerous normal-rank links.
+    claims = [
+        {"rank": "preferred", "mainsnak": {"datavalue": {"value": "https://example.org/"}}},
+        {"rank": "normal", "mainsnak": {"datavalue": {"value": "https://other.com/"}}},
+        {"rank": "normal", "mainsnak": {"datavalue": {"value": "https://other.com/x"}}},
+    ]
+    monkeypatch.setattr(
+        br.requests,
+        "get",
+        lambda *a, **k: Resp({"entities": {"Q1": {"claims": {"P856": claims}}}}),
+    )
+    assert br._qids_to_domains(["Q1"]) == {"Q1": {"example.org"}}
+
+
+def test_qids_to_domains_preferred_rank_keeps_variant_tlds(monkeypatch: Any) -> None:
+    # BBC marks bbc.com preferred and bbc.co.uk normal; a preferred root must
+    # not prune the normal-rank TLD variant that shares it.
+    claims = [
+        {"rank": "preferred", "mainsnak": {"datavalue": {"value": "https://www.bbc.com/"}}},
+        {"rank": "normal", "mainsnak": {"datavalue": {"value": "https://www.bbc.co.uk/"}}},
+    ]
+    monkeypatch.setattr(
+        br.requests,
+        "get",
+        lambda *a, **k: Resp({"entities": {"Q9531": {"claims": {"P856": claims}}}}),
+    )
+    assert br._qids_to_domains(["Q9531"]) == {"Q9531": {"bbc.com", "bbc.co.uk"}}
+
+
+def test_collapse_by_domain_dedupes_shared_domain() -> None:
+    # Two RSP rows for the same outlet share a domain and the full domain count;
+    # collapsing must yield one row, not double the citations.
+    rows = [
+        {"source_name": "Fox News (politics)", "status": "gu", "domain": "foxnews.com",
+         "total_citations": 19853, "fa_citations": 181, "ga_citations": 912, "distinct_articles": 14267},
+        {"source_name": "Fox News (talk shows)", "status": "gu", "domain": "foxnews.com",
+         "total_citations": 19853, "fa_citations": 181, "ga_citations": 912, "distinct_articles": 14267},
+    ]
+    collapsed = collapse_by_domain(rows)
+    assert len(collapsed) == 1
+    assert collapsed[0]["total_citations"] == 19853  # not summed to 39706
+    assert collapsed[0]["domain"] == "foxnews.com"
+    assert "Fox News (politics)" in collapsed[0]["source_name"]
+    assert "Fox News (talk shows)" in collapsed[0]["source_name"]
+
+
+def test_most_cautious_precedence() -> None:
+    assert br._most_cautious(["gr", "d", "nc"]) == "d"  # deprecated wins
+    assert br._most_cautious(["gr", "gu"]) == "gu"
+    assert br._most_cautious(["gr", "gr"]) == "gr"
+    assert br._most_cautious(["nc", "m"]) == "nc"
+    assert br._most_cautious(["?unknown?"]) == "?unknown?"  # unknown alone passes through
+    assert br._most_cautious(["gr", "?unknown?"]) == "gr"  # known rating supersedes unknown
+
+
+def test_qids_to_domains_drops_loc_gov_catalogue_link(monkeypatch: Any) -> None:
+    # A 1-to-1 tie between the real site and a loc.gov catalogue link must resolve
+    # to the real site, not depend on Counter insertion order.
+    claims = [
+        {"mainsnak": {"datavalue": {"value": "https://www.example.com/"}}},
+        {"mainsnak": {"datavalue": {"value": "https://lccn.loc.gov/12345"}}},
+    ]
+    monkeypatch.setattr(
+        br.requests,
+        "get",
+        lambda *a, **k: Resp({"entities": {"Q1": {"claims": {"P856": claims}}}}),
+    )
+    assert br._qids_to_domains(["Q1"]) == {"Q1": {"example.com"}}
+
+
+def test_collapse_by_domain_resolves_to_most_cautious_status() -> None:
+    # When splits of one domain carry different ratings, the most cautious wins
+    # so a Goggle never boosts a domain that is unreliable for some topics.
+    rows = [
+        {"source_name": "Outlet (good topic)", "status": "gr", "domain": "x.com",
+         "total_citations": 100, "fa_citations": 1, "ga_citations": 2, "distinct_articles": 50},
+        {"source_name": "Outlet (bad topic)", "status": "d", "domain": "x.com",
+         "total_citations": 100, "fa_citations": 1, "ga_citations": 2, "distinct_articles": 50},
+    ]
+    collapsed = collapse_by_domain(rows)
+    assert len(collapsed) == 1
+    assert collapsed[0]["status"] == "d"  # deprecated outranks generally-reliable
 
 
 def test_get_json_honors_fractional_retry_after(monkeypatch: Any) -> None:
