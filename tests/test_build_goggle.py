@@ -9,6 +9,7 @@ from core.build_goggle import (
     GENERATED_SECTION,
     Diff,
     Rule,
+    _is_valid_domain,
     diff_rules,
     domain_status_from_ranking,
     domain_status_from_resolution,
@@ -16,6 +17,7 @@ from core.build_goggle import (
     load_overlay,
     main,
     merge_rules,
+    parse_goggle_rules,
     parse_rule_line,
     render_diff_md,
     render_goggle,
@@ -170,6 +172,45 @@ def test_diff_report_with_empty_buckets_is_lint_safe() -> None:
     assert "None." in out
     assert "\n\n\n" not in out
     assert out.endswith("\n") and not out.endswith("\n\n")
+
+
+def test_diff_report_renders_counts_and_conflict_table() -> None:
+    diff = Diff(
+        generated_only=[Rule("boost", 2, "new.com")],
+        conflicts=[(Rule("discard", None, "x.com"), Rule("boost", 2, "x.com"))],
+    )
+    out = render_diff_md(diff, base_count=42)
+    assert "**42**" in out                                  # base_count surfaced
+    assert "- `$boost=2,site=new.com`" in out               # generated-only listed
+    assert "| x.com | `$discard,site=x.com` | `$boost=2,site=x.com` |" in out  # conflict row
+
+
+def test_is_valid_domain_rejects_goggle_breaking_characters() -> None:
+    assert _is_valid_domain("bbc.co.uk")
+    assert _is_valid_domain("ms.now")            # syntactically valid hostname
+    assert not _is_valid_domain("with space.com")
+    assert not _is_valid_domain("site=inject.com")
+    assert not _is_valid_domain("bad$domain.com")
+    assert not _is_valid_domain("no-dot")
+    assert not _is_valid_domain("")
+
+
+def test_domain_status_from_ranking_skips_syntactically_invalid_domains(tmp_path: Path) -> None:
+    csv_path = tmp_path / "ranking.csv"
+    csv_path.write_text(
+        "source_name,status,domain\n"
+        "Good,gr,good.com\n"
+        "Injected,gr,site=evil.com\n"   # illegal '=' would break Goggle syntax
+        "Spaced,gu,bad domain.org\n"
+    )
+    assert domain_status_from_ranking(csv_path) == {"good.com": "gr"}
+
+
+def test_parse_goggle_rules_excludes_domainless_boost_rule() -> None:
+    # A domain-less $boost would become a global boost on every page if emitted.
+    text = "! Source: x\n$boost=2\n$boost=2,site=real.com\n$discard\n"
+    rules = [r for _, r in parse_goggle_rules(text)]
+    assert rules == [Rule("boost", 2, "real.com")]
 
 
 def test_domain_status_from_ranking_collapses_duplicates_to_most_cautious(tmp_path: Path) -> None:
