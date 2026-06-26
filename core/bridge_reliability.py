@@ -63,11 +63,13 @@ UNRELIABLE = {"gu", "d"}
 # Most cautious first. When several rated source-splits resolve to one domain
 # (RSP lists outlets per era/section), the domain inherits the most cautious
 # rating so a Goggle never boosts a domain that is unreliable for some topics.
-# Unknown statuses sort last (least cautious) and never override a known rating.
+# Unknown statuses sort after all known ratings and are superseded by any known
+# rating (an unknown paired only with ``gr`` resolves to ``gr``).
 _STATUS_PRECEDENCE = ["d", "gu", "nc", "m", "gr"]
 
 
 def _most_cautious(statuses: list[str]) -> str:
+    """Return the most cautious status; requires a non-empty list."""
     return min(
         statuses,
         key=lambda s: _STATUS_PRECEDENCE.index(s) if s in _STATUS_PRECEDENCE else len(_STATUS_PRECEDENCE),
@@ -155,6 +157,7 @@ _AGGREGATOR_HOSTS = frozenset(
         "worldcat.org",
         "jstor.org",
         "proquest.com",
+        "loc.gov",  # Library of Congress catalogue links (lccn.loc.gov, etc.)
     }
 )
 
@@ -172,11 +175,13 @@ def _qids_to_domains(qids: list[str]) -> dict[str, set[str]]:
 
     A source may list multiple domains: legitimate variants share a registrable
     root (``bbc.com`` + ``bbc.co.uk``), while mirrors/unrelated links (a NYT
-    ``loc.gov`` archive link) do not. Selection is, in order: drop
-    ``deprecated``-rank claims; if any ``preferred``-rank claims remain keep only
-    those; drop archive/catalogue aggregator links; then keep every full domain
-    sharing the dominant registrable root. This captures TLD variants while
-    dropping noise and the digitisation links that would otherwise dominate.
+    ``loc.gov`` archive link) do not. Selection, in order:
+
+    1. Drop ``deprecated``-rank claims and archive/catalogue aggregator links.
+    2. If any ``preferred``-rank claims remain, vote for the dominant root using
+       only those; otherwise vote across all surviving claims.
+    3. Keep every full domain sharing the dominant root, so a preferred
+       ``bbc.com`` does not prune a normal-rank ``bbc.co.uk``.
     """
     out: dict[str, set[str]] = {}
     for batch in _chunks(qids, _BATCH):
@@ -322,7 +327,9 @@ def collapse_by_domain(rows: list[dict]) -> list[dict]:
 # are noise in a coverage-gap report meant to surface unrated editorial outlets.
 _NON_EDITORIAL_SUFFIXES = ("gov", "edu", "mil")
 # Archives, library catalogues, and identifier resolvers — cited heavily but not
-# rateable editorial sources.
+# rateable editorial sources. Keyed by registrable domain to match the citation
+# table (which collapses ``books.google.com`` into ``google.com``), so only
+# registrable domains belong here.
 _NON_EDITORIAL_DOMAINS = frozenset(
     {
         "archive.org",
@@ -330,8 +337,6 @@ _NON_EDITORIAL_DOMAINS = frozenset(
         "hathitrust.org",
         "jstor.org",
         "doi.org",
-        "books.google.com",
-        "scholar.google.com",
     }
 )
 
@@ -355,6 +360,7 @@ def coverage_gaps(
     With ``drop_non_editorial`` (the default), government/education/military and
     archive/identifier domains are excluded so the report surfaces genuinely
     unrated editorial outlets rather than infrastructure that will never be rated.
+    Returns fewer than ``limit`` rows when too few editorial candidates remain.
     """
     ranked = sorted(
         citations.items(), key=lambda kv: kv[1]["total"], reverse=True

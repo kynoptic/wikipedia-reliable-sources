@@ -206,6 +206,30 @@ def test_collapse_by_domain_dedupes_shared_domain() -> None:
     assert "Fox News (talk shows)" in collapsed[0]["source_name"]
 
 
+def test_most_cautious_precedence() -> None:
+    assert br._most_cautious(["gr", "d", "nc"]) == "d"  # deprecated wins
+    assert br._most_cautious(["gr", "gu"]) == "gu"
+    assert br._most_cautious(["gr", "gr"]) == "gr"
+    assert br._most_cautious(["nc", "m"]) == "nc"
+    assert br._most_cautious(["?unknown?"]) == "?unknown?"  # unknown alone passes through
+    assert br._most_cautious(["gr", "?unknown?"]) == "gr"  # known rating supersedes unknown
+
+
+def test_qids_to_domains_drops_loc_gov_catalogue_link(monkeypatch: Any) -> None:
+    # A 1-to-1 tie between the real site and a loc.gov catalogue link must resolve
+    # to the real site, not depend on Counter insertion order.
+    claims = [
+        {"mainsnak": {"datavalue": {"value": "https://www.example.com/"}}},
+        {"mainsnak": {"datavalue": {"value": "https://lccn.loc.gov/12345"}}},
+    ]
+    monkeypatch.setattr(
+        br.requests,
+        "get",
+        lambda *a, **k: Resp({"entities": {"Q1": {"claims": {"P856": claims}}}}),
+    )
+    assert br._qids_to_domains(["Q1"]) == {"Q1": {"example.com"}}
+
+
 def test_collapse_by_domain_resolves_to_most_cautious_status() -> None:
     # When splits of one domain carry different ratings, the most cautious wins
     # so a Goggle never boosts a domain that is unreliable for some topics.
