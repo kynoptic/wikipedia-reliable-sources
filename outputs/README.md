@@ -31,9 +31,9 @@ Sources ratings to citation volume to produce the reliability ranking, red flags
 and coverage gaps. Rows in the bridge outputs are keyed by domain: sources that
 share a domain (Perennial Sources lists some outlets per era or section) collapse
 into one row carrying the most cautious of their ratings. `core.build_goggle`
-consumes the reliability ranking to regenerate the goggle files, emitting the
-goggle diff and gap-candidate reports. All files can be viewed in spreadsheet
-software or used for analysis.
+consumes the reliability ranking to regenerate the goggle files and the
+gap-candidate report; the goggle diff is written when the overlay is seeded. All
+files can be viewed in spreadsheet software or used for analysis.
 
 ## Related modules
 

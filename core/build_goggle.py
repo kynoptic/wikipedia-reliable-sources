@@ -273,7 +273,7 @@ def render_diff_md(diff: Diff, base_count: int) -> str:
         "## Generated-only (additions the automation contributes)",
         "",
     ]
-    lines += [f"- `{render_rule(r)}`" for r in diff.generated_only] or ["_none_"]
+    lines += [f"- `{render_rule(r)}`" for r in diff.generated_only] or ["None."]
     lines += ["", "## Conflicts (base disagrees with the committed goggle)", ""]
     if diff.conflicts:
         lines.append("| domain | base | committed |")
@@ -283,7 +283,7 @@ def render_diff_md(diff: Diff, base_count: int) -> str:
             for base, cur in diff.conflicts
         ]
     else:
-        lines.append("_none_")
+        lines.append("None.")
     lines += [
         "",
         "## Current-only — preserved in the overlay",
@@ -291,7 +291,6 @@ def render_diff_md(diff: Diff, base_count: int) -> str:
         f"Path-qualified ({len(diff.current_only_path)}) and plain ({len(diff.current_only_plain)}) "
         "rules the base cannot derive. These live in `goggle_overlay.txt`; the path-qualified set "
         "is the target for future generation.",
-        "",
     ]
     return "\n".join(lines) + "\n"
 
@@ -443,26 +442,29 @@ def main(argv: list[str] | None = None) -> int:
 
     domain_status = domain_status_from_ranking(args.ranking)
     base = generate_base_rules(domain_status)
-    current_text = args.current.read_text(encoding="utf-8")
 
-    if args.seed_overlay and GENERATED_SECTION in current_text:
-        parser.error(
-            f"{args.current} is already a generated goggle. Seeding is a one-time "
-            "bootstrap that must read the pristine hand-maintained file; restore it "
-            f"first (e.g. `git checkout HEAD -- {args.current}`)."
-        )
-
-    current = [rule for _, rule in parse_goggle_rules(current_text)]
-
-    # The diff reflects the goggle as read here, before any overwrite below.
-    diff = diff_rules(base, current)
-    args.diff_out.parent.mkdir(parents=True, exist_ok=True)
-    args.diff_out.write_text(render_diff_md(diff, len(base)), encoding="utf-8")
-
+    # Seeding compares the base against the pristine hand-maintained goggle and
+    # writes both the overlay and the diff report. After the first generated build
+    # overwrites the goggle, that comparison no longer exists, so the diff is a
+    # seed-time artifact — the normal build below does not regenerate it.
     if args.seed_overlay:
+        current_text = args.current.read_text(encoding="utf-8")
+        if GENERATED_SECTION in current_text:
+            parser.error(
+                f"{args.current} is already a generated goggle. Seeding is a one-time "
+                "bootstrap that must read the pristine hand-maintained file; restore it "
+                f"first (e.g. `git checkout HEAD -- {args.current}`)."
+            )
+        current = [rule for _, rule in parse_goggle_rules(current_text)]
+        diff = diff_rules(base, current)
+        args.diff_out.parent.mkdir(parents=True, exist_ok=True)
+        args.diff_out.write_text(render_diff_md(diff, len(base)), encoding="utf-8")
         args.overlay.write_text(seed_overlay(current, base), encoding="utf-8")
-        print(f"Seeded {args.overlay} (path={len(diff.current_only_path)}, "
-              f"manual={len(diff.current_only_plain)}, conflicts={len(diff.conflicts)})")
+        print(
+            f"Seeded {args.overlay} and {args.diff_out} "
+            f"(generated_only={len(diff.generated_only)}, path={len(diff.current_only_path)}, "
+            f"manual={len(diff.current_only_plain)}, conflicts={len(diff.conflicts)})"
+        )
         return 0
 
     overlay_pairs = (
@@ -477,11 +479,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         gap_count = 0
 
-    print(
-        f"base={len(base)} overlay={len(overlay_pairs)} "
-        f"generated_only={len(diff.generated_only)} conflicts={len(diff.conflicts)} "
-        f"gaps={gap_count}"
-    )
+    print(f"base={len(base)} overlay={len(overlay_pairs)} gaps={gap_count}")
     return 0
 
 

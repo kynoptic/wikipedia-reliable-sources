@@ -7,14 +7,17 @@ import pytest
 
 from core.build_goggle import (
     GENERATED_SECTION,
+    Diff,
     Rule,
     diff_rules,
+    domain_status_from_ranking,
     domain_status_from_resolution,
     generate_base_rules,
     load_overlay,
     main,
     merge_rules,
     parse_rule_line,
+    render_diff_md,
     render_goggle,
     render_rule,
     rule_key,
@@ -152,6 +155,27 @@ def test_diff_classifies_generated_only_current_only_and_conflicts() -> None:
 
 
 # --- overlay seed + round-trip ------------------------------------------------
+
+
+def test_diff_report_with_empty_buckets_is_lint_safe() -> None:
+    # The empty-bucket fallback must not be standalone emphasis (MD036/MD049) and
+    # the report must not end with a trailing blank line (MD012).
+    out = render_diff_md(Diff(), base_count=0)
+    assert "_none_" not in out
+    assert "None." in out
+    assert "\n\n\n" not in out
+    assert out.endswith("\n") and not out.endswith("\n\n")
+
+
+def test_domain_status_from_ranking_collapses_duplicates_to_most_cautious(tmp_path: Path) -> None:
+    csv_path = tmp_path / "ranking.csv"
+    csv_path.write_text(
+        "source_name,status,domain\n"
+        "Reliable outlet,gr,EXAMPLE.com\n"   # uppercase normalizes to lowercase
+        "Bad section,gu,example.com\n"        # same domain, more cautious wins
+        "Clean,gr,other.org\n"
+    )
+    assert domain_status_from_ranking(csv_path) == {"example.com": "gu", "other.org": "gr"}
 
 
 def test_seed_overlay_reproduces_full_current_corpus_after_merge() -> None:
