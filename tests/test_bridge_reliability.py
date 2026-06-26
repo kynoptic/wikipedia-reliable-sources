@@ -159,6 +159,22 @@ def test_qids_to_domains_skips_deprecated_rank_claims(monkeypatch: Any) -> None:
     assert br._qids_to_domains(["Q5973845"]) == {"Q5973845": {"nationalgeographic.com"}}
 
 
+def test_should_correct_rebranded_domain_when_known_wrong_resolution(monkeypatch: Any) -> None:
+    # MSNBC: the entity now leads with the post-rebrand ms.now at normal rank and
+    # demotes msnbc.com to deprecated, so the rank filter would surface ms.now —
+    # a domain absent from search indexes. The correction map restores msnbc.com.
+    claims = [
+        {"rank": "normal", "mainsnak": {"datavalue": {"value": "https://MS.now"}}},
+        {"rank": "deprecated", "mainsnak": {"datavalue": {"value": "https://www.msnbc.com/"}}},
+    ]
+    monkeypatch.setattr(
+        br.requests,
+        "get",
+        lambda *a, **k: Resp({"entities": {"Q13973": {"claims": {"P856": claims}}}}),
+    )
+    assert br._qids_to_domains(["Q13973"]) == {"Q13973": {"msnbc.com"}}
+
+
 def test_qids_to_domains_prefers_preferred_rank(monkeypatch: Any) -> None:
     # A single preferred-rank claim outweighs more numerous normal-rank links.
     claims = [

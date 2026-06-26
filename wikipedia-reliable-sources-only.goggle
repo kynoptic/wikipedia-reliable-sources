@@ -201,7 +201,6 @@ $discard,site=mintpressnews.com
 $downrank=2,site=mirror.co.uk
 $boost=2,site=monde-diplomatique.fr
 $downrank=2,site=mondoweiss.net
-$boost=2,site=ms.now
 $discard,site=mylife.com
 $discard,site=nationalenquirer.com
 $boost=2,site=nationalgeographic.com
