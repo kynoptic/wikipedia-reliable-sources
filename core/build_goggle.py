@@ -74,8 +74,9 @@ PRODUCT_PORTAL_DOMAINS: frozenset[str] = frozenset(
 
 # Google rules the "-only" variant comments out. With the rules removed, the
 # whitelist catch-all $discard drops these domains entirely — including
-# google.com, which the base excluded via PRODUCT_PORTAL_DOMAINS but which
-# becomes discarded in the whitelist variant if any overlay rule exists.
+# google.com, which the base no longer rates (excluded via
+# PRODUCT_PORTAL_DOMAINS); the whitelist catch-all then drops it, matching the
+# hand-maintained goggle's decision.
 SUPPRESS_IN_ONLY = frozenset(
     {
         "google.com",
@@ -527,14 +528,6 @@ def main(argv: list[str] | None = None) -> int:
     ordered = build_ordered_rules(base, overlay_pairs)
     for variant, cfg in VARIANTS.items():
         (args.outdir / cfg["filename"]).write_text(render_goggle(ordered, variant), encoding="utf-8")
-
-    # Regenerate the diff report on every build by comparing the base against
-    # the overlay rules. This keeps goggle_diff.md current without requiring a
-    # --seed-overlay re-run whenever the base or overlay changes.
-    overlay_rules = [rule for _, rule in overlay_pairs]
-    diff = diff_rules(base, overlay_rules)
-    args.diff_out.parent.mkdir(parents=True, exist_ok=True)
-    args.diff_out.write_text(render_diff_md(diff, len(base)), encoding="utf-8")
 
     if args.citations.exists():
         gap_count = _write_gap_report(args.citations, set(domain_status), args.gaps_out, args.top)

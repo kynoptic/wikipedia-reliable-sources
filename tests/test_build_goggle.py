@@ -337,12 +337,10 @@ def test_product_portal_domain_excluded_from_base_rules() -> None:
         assert ("", "legit.com") in base, "non-excluded domain must still get a rule"
 
 
-def test_non_editorial_exclusions_still_excluded(tmp_path: Path) -> None:
-    # Regression: gov/edu/mil suffix exclusions from bridge_reliability.py still work.
-    # They are not consulted by build_goggle directly, but as a cross-check confirm
-    # that status-less or filtered entries do not appear in base rules either.
-    # Here we verify that PRODUCT_PORTAL_DOMAINS does not accidentally exclude
-    # legitimate domains that are not products/portals.
+def test_legitimate_domains_still_get_base_rules(tmp_path: Path) -> None:
+    # Regression: PRODUCT_PORTAL_DOMAINS must not accidentally exclude ordinary
+    # editorial domains. Domains that are not products/portals still produce a
+    # base rule when read from the ranking CSV.
     csv_path = tmp_path / "ranking.csv"
     csv_path.write_text(
         "source_name,status,domain\n"
@@ -356,13 +354,12 @@ def test_non_editorial_exclusions_still_excluded(tmp_path: Path) -> None:
     assert ("", "nytimes.com") in base
 
 
-def test_legitimate_editorial_on_same_registrable_domain_not_excluded() -> None:
-    # Edge case: if a legitimate editorial source happens to share the registrable
-    # domain of a product entry (e.g. google.com), the editorial source would also
-    # be excluded — that is the correct behavior because we cannot distinguish at
-    # the domain level. But subdomains (maps.google.com, news.google.com, etc.)
-    # that appear as separate entries in the overlay must remain unaffected.
-    # Verify that PRODUCT_PORTAL_DOMAINS only excludes exact domain matches.
+def test_product_portal_excludes_exact_domain_only() -> None:
+    # Edge case: the exclusion matches the exact registrable domain only. A
+    # product entry (google.com) is excluded, but its subdomains — which appear
+    # as separate, distinguishable entries (maps./news.google.com) — must not be
+    # swept up by the set. This guards a legitimate editorial source on a
+    # subdomain of an excluded registrable domain.
     domain_status = {
         "google.com": "nc",
         "maps.google.com": "d",
