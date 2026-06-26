@@ -99,7 +99,7 @@ _RULE_RE = re.compile(
     r"^(?P<prefix>\S*\^)?"
     r"\$(?P<action>boost|downrank|discard)"
     r"(?:=(?P<value>\d+))?"
-    r"(?:,site=(?P<domain>\S+))?$"
+    r"(?:,site=(?P<domain>[^,\s]+))?$"
 )
 
 

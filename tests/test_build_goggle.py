@@ -58,6 +58,11 @@ def test_parse_ignores_comment_and_blank_lines() -> None:
     assert parse_rule_line("   ") is None
 
 
+def test_parse_rejects_trailing_attributes_after_domain() -> None:
+    # The domain stops at a comma, so an extra attribute fails the end anchor.
+    assert parse_rule_line("$discard,site=abc.com,extra=foo") is None
+
+
 def test_render_is_inverse_of_parse_for_every_pattern() -> None:
     for line in (
         "$boost=2,site=abcnews.com",
@@ -212,6 +217,27 @@ def test_seed_overlay_refuses_an_already_generated_goggle(tmp_path: Path) -> Non
     with pytest.raises(SystemExit):
         main(["--seed-overlay", "--ranking", str(ranking), "--current", str(generated),
               "--overlay", str(tmp_path / "overlay.txt"), "--diff-out", str(tmp_path / "d.md")])
+
+
+def test_main_normal_build_writes_both_merged_variants(tmp_path: Path) -> None:
+    ranking = tmp_path / "ranking.csv"
+    ranking.write_text("source_name,status,domain\nGood,gr,good.com\nBad,d,bad.com\n")
+    overlay = tmp_path / "overlay.txt"
+    overlay.write_text("! Source: manual\n$boost=2,site=manual.com\n")
+    rc = main([
+        "--ranking", str(ranking),
+        "--overlay", str(overlay),
+        "--outdir", str(tmp_path),
+        "--citations", str(tmp_path / "absent.csv"),  # skip gap report
+        "--gaps-out", str(tmp_path / "gaps.csv"),
+    ])
+    assert rc == 0
+    default = (tmp_path / "wikipedia-reliable-sources.goggle").read_text()
+    only = (tmp_path / "wikipedia-reliable-sources-only.goggle").read_text()
+    assert "$boost=2,site=good.com" in default      # base, gr -> boost
+    assert "$discard,site=bad.com" in default        # base, d -> discard
+    assert "$boost=2,site=manual.com" in default     # overlay merged in
+    assert "\n$discard\n" in only                    # only-variant catch-all
 
 
 def test_only_variant_adds_catch_all_discard() -> None:
