@@ -170,6 +170,18 @@ def _is_aggregator_link(url: str) -> bool:
     return any(host == h or host.endswith("." + h) for h in _AGGREGATOR_HOSTS)
 
 
+# Known-wrong P856 resolutions, mapped to the domain a search engine actually
+# indexes. Wikidata's official-website claim can lead with a freshly-rebranded
+# domain while demoting the established one to ``deprecated`` rank: MSNBC's
+# entity now lists ``ms.now`` at normal rank and ``msnbc.com`` as deprecated, so
+# the rank filter in ``_qids_to_domains`` keeps only ``ms.now`` — a live hostname
+# absent from Brave Search's index. Corrected here so the Goggle targets the
+# domain that still carries the source's content. Keyed by registrable domain.
+_DOMAIN_CORRECTIONS = {
+    "ms.now": "msnbc.com",
+}
+
+
 def _qids_to_domains(qids: list[str]) -> dict[str, set[str]]:
     """Map QIDs to their official-website domains via the P856 claims.
 
@@ -218,7 +230,11 @@ def _qids_to_domains(qids: list[str]) -> dict[str, set[str]]:
             preferred_roots = [root for rank, root, _ in candidates if rank == "preferred"]
             vote_pool = preferred_roots or [root for _, root, _ in candidates]
             dominant_root = Counter(vote_pool).most_common(1)[0][0]
-            out[qid] = {full for _, root, full in candidates if root == dominant_root}
+            out[qid] = {
+                _DOMAIN_CORRECTIONS.get(full.lower(), full)
+                for _, root, full in candidates
+                if root == dominant_root
+            }
     return out
 
 
