@@ -151,9 +151,15 @@ The two `.goggle` files are build artifacts of the reliability data, not hand-ed
 python -m core.build_goggle
 ```
 
-This reads `outputs/reliability_ranking.csv` (produced by `core.bridge_reliability`) and `goggle_overlay.txt`, then writes both goggle variants and `outputs/goggle_gap_candidates.csv` (heavily-cited but unrated domains, for manual review — never auto-added).
+This reads `outputs/reliability_ranking.csv` (produced by `core.bridge_reliability`) and `goggle_overlay.txt`, then writes both goggle variants, `outputs/goggle_diff.md`, and `outputs/goggle_gap_candidates.csv` (heavily-cited but unrated domains, for manual review — never auto-added).
 
 On a conflict, the curated overlay value wins. Edit `goggle_overlay.txt` by hand to maintain rules the generator can't produce.
+
+The diff report (`outputs/goggle_diff.md`) is regenerated on every build: it compares the data-driven base against the overlay rules, showing additions the base contributes, rules preserved in the overlay that the base cannot derive, and conflicts where the base and overlay disagree. The overlay value always wins on conflict.
+
+### Domain exclusions
+
+Some ranking entries describe a narrow product or portal (e.g. "Google Maps (Google Street View)" rated `nc`) that resolves to a generic registrable domain shared by the whole platform. Emitting a `site=google.com` rule from such an entry would downrank every Google property, not just Street View. These domains are listed in `PRODUCT_PORTAL_DOMAINS` in `core/build_goggle.py` and are excluded from base rule generation. Human curation via `goggle_overlay.txt` remains fully expressible for those domains.
 
 ### Bootstrapping the overlay
 
@@ -163,7 +169,7 @@ The overlay is seeded once from the existing hand-maintained goggle, capturing e
 python -m core.build_goggle --seed-overlay
 ```
 
-Run this against the pristine hand file, before the first generated build overwrites it; the command refuses to seed from an already-generated goggle. Seeding also writes `outputs/goggle_diff.md` — what the base generates versus the hand-maintained goggle: additions, conflicts (where the data disagrees with a curated rule), and the overlay-preserved remainder. The diff reflects that one-time comparison, so the normal build does not regenerate it.
+Run this against the pristine hand file, before the first generated build overwrites it; the command refuses to seed from an already-generated goggle.
 
 ## Running tests
 
