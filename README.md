@@ -140,6 +140,31 @@ Add new mappings in `data/alias_map.json` to normalize additional domains.
 Each entry maps a short hostname to its canonical form. These aliases are loaded
 by `core/clean_sources`, so updates affect how sources are deduplicated.
 
+## Generating the goggles
+
+The two `.goggle` files are build artifacts of the reliability data, not hand-edited files. `core.build_goggle` merges two layers:
+
+- a **base** layer derived from the data — one `site=` rule per rated domain, with the reliability status mapped to a Goggle action (`gr`→`$boost=2`, `nc`→`$downrank=2`, `gu`/`d`→`$discard`, `m`→no rule); and
+- a curated **overlay** ([`goggle_overlay.txt`](goggle_overlay.txt)) holding rules the data cannot yet derive: per-topic path-qualified rules (`/*science^…`) and domains added by hand or mined from Featured/Good-article citations.
+
+```bash
+python -m core.build_goggle
+```
+
+This reads `outputs/reliability_ranking.csv` (produced by `core.bridge_reliability`) and `goggle_overlay.txt`, then writes both goggle variants and `outputs/goggle_gap_candidates.csv` (heavily-cited but unrated domains, for manual review — never auto-added).
+
+On a conflict, the curated overlay value wins. Edit `goggle_overlay.txt` by hand to maintain rules the generator can't produce.
+
+### Bootstrapping the overlay
+
+The overlay is seeded once from the existing hand-maintained goggle, capturing every rule the base does not reproduce:
+
+```bash
+python -m core.build_goggle --seed-overlay
+```
+
+Run this against the pristine hand file, before the first generated build overwrites it; the command refuses to seed from an already-generated goggle. Seeding also writes `outputs/goggle_diff.md` — what the base generates versus the hand-maintained goggle: additions, conflicts (where the data disagrees with a curated rule), and the overlay-preserved remainder. The diff reflects that one-time comparison, so the normal build does not regenerate it.
+
 ## Running tests
 
 Install the dependencies listed in `requirements.txt` and execute the test suite with `pytest`:
