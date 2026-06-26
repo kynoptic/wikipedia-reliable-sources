@@ -1682,6 +1682,7 @@ $discard,site=herbranger.com
 $discard,site=herbreference.com
 $discard,site=herbs.news
 $discard,site=heritage.news
+$boost=2,site=heritage.org
 $discard,site=heritagewhey.newshigher.news
 $boost=2,site=hermitagemuseum.org
 $boost=2,site=heroesneverdie.com
@@ -3669,7 +3670,6 @@ $boost=2,site=encyclopedia.com
 $discard,site=forbes.com
 $boost=2,site=foxnews.com
 $boost=2,site=google.com
-$boost=2,site=heritage.org
 $downrank=2,site=hopenothate.org.uk
 $downrank=2,site=huffpost.com
 $downrank=2,site=investopedia.com
