@@ -109,7 +109,9 @@ _RULE_RE = re.compile(
 # break Goggle `site=` syntax (spaces, `$`, `=`, `,`, `/`) or carry no TLD. This
 # is a syntax guard, not a real-TLD check: a syntactically valid but wrong
 # resolution (e.g. ``ms.now`` for MSNBC) passes and must be fixed upstream.
-_VALID_DOMAIN_RE = re.compile(r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$")
+_VALID_DOMAIN_RE = re.compile(
+    r"^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$"
+)
 
 
 def _is_valid_domain(domain: str) -> bool:
@@ -244,7 +246,14 @@ def merge_rules(
 
 
 def load_overlay(text: str) -> list[tuple[str, Rule]]:
-    """Parse the curated overlay file into ``(section, rule)`` pairs."""
+    """Parse the curated overlay file into ``(section, rule)`` pairs.
+
+    Overlay domains are not run through ``_is_valid_domain``: the overlay is
+    pre-audited, source-controlled curation, and it carries hand rules the data
+    cannot derive (e.g. the single-label ``site=letour``). Validating here would
+    drop such rules and break the superset guarantee. Domain validation is for the
+    untrusted CSV data layer only.
+    """
     return parse_goggle_rules(text)
 
 

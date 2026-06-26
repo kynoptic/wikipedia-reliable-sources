@@ -260,6 +260,22 @@ def test_seed_overlay_refuses_an_already_generated_goggle(tmp_path: Path) -> Non
               "--overlay", str(tmp_path / "overlay.txt"), "--diff-out", str(tmp_path / "d.md")])
 
 
+def test_build_reproduces_the_committed_goggles(tmp_path: Path) -> None:
+    # The goggles are committed build artifacts: rebuilding from the committed
+    # ranking + overlay must reproduce them exactly, or they have drifted.
+    root = Path(__file__).resolve().parents[1]
+    rc = main([
+        "--ranking", str(root / "outputs" / "reliability_ranking.csv"),
+        "--overlay", str(root / "goggle_overlay.txt"),
+        "--outdir", str(tmp_path),
+        "--citations", str(tmp_path / "absent.csv"),
+        "--gaps-out", str(tmp_path / "gaps.csv"),
+    ])
+    assert rc == 0
+    for name in ("wikipedia-reliable-sources.goggle", "wikipedia-reliable-sources-only.goggle"):
+        assert (tmp_path / name).read_text() == (root / name).read_text(), f"{name} drifted"
+
+
 def test_main_normal_build_writes_both_merged_variants(tmp_path: Path) -> None:
     ranking = tmp_path / "ranking.csv"
     ranking.write_text("source_name,status,domain\nGood,gr,good.com\nBad,d,bad.com\n")
