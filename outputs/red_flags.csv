@@ -1,21 +1,17 @@
 source_name,status,domain,total_citations,fa_citations,ga_citations,distinct_articles
 YouTube,gu,youtube.com,239096,867,6995,119940
 IMDb (Internet Movie Database),gu,imdb.com,79587,115,1053,47538
-X (Twitter),gu,twitter.com,65642,140,1482,35010
 Facebook (Meta),gu,facebook.com,59493,69,731,33378
 Discogs,gu,discogs.com,56545,46,646,29784
 WordPress.com,gu,wordpress.com,47017,114,886,38693
-"Rolling Stone (politics and society, 2011–present)",gu,rollingstone.com,21876,286,1380,16128
-Rolling Stone (Culture Council),gu,rollingstone.com,21876,286,1380,16128
+"Rolling Stone (Culture Council); Rolling Stone (culture); Rolling Stone (politics and society, 2011–present)",gu,rollingstone.com,21847,286,1378,16104
 AllMovie (2024–present),gu,allmovie.com,21403,52,343,7798
 "Instagram (IG, Insta, The Gram)",gu,instagram.com,20553,34,352,12518
-Fox News (politics and science),gu,foxnews.com,19853,181,912,14267
-Fox News (talk shows),gu,foxnews.com,19853,181,912,14267
+Fox News (news excluding politics and science); Fox News (politics and science); Fox News (talk shows),gu,foxnews.com,19853,181,912,14267
 PR Newswire,gu,prnewswire.com,14254,92,525,11063
 BroadwayWorld,gu,broadwayworld.com,12629,45,434,8620
-CNET (November 2022present),gu,cnet.com,11690,96,609,7810
-Metro (UK),gu,metro.co.uk,10558,59,739,7863
-HuffPost contributors (The Huffington Post),gu,huffingtonpost.co.uk,9943,59,408,8136
+CNET (November 2022present); CNET (October 2020October 2022); CNET (pre–October 2020),gu,cnet.com,11690,96,609,7810
+Metro (UK); Metro (UK) (soap operas),gu,metro.co.uk,10558,59,739,7863
 Catholic-Hierarchy.org,gu,catholic-hierarchy.org,9766,2,19,6842
 Ancestry.com,gu,ancestry.com,8937,24,146,6893
 Zee News,d,india.com,8500,56,233,6580
@@ -24,14 +20,15 @@ Goodreads,gu,goodreads.com,7870,24,87,5706
 FamilySearch,gu,familysearch.org,7825,28,198,4998
 Find a Grave,gu,findagrave.com,7795,8,56,6970
 LinkedIn (LinkedIn Pulse),gu,linkedin.com,7730,1,50,6710
+HuffPost contributors (The Huffington Post),gu,huffpost.com,7685,60,368,6135
 Scribd,gu,scribd.com,7651,22,207,5825
 GlobalSecurity.org,gu,globalsecurity.org,6451,16,95,4913
 "International Business Times (IBT, IBTimes)",gu,ibtimes.com,6259,48,301,5569
 Daily Express,gu,express.co.uk,6232,39,255,5392
-Wikipedia (including The Signpost),gu,wikipedia.org,6064,1,40,4407
-ZDNET (October 2020present),gu,zdnet.com,5008,15,153,3433
+Wikipedia (including The Signpost),gu,wikipedia.org,6052,1,40,4399
+ZDNET (October 2020present); ZDNET (pre-October 2020),gu,zdnet.com,5008,15,153,3433
 Who's Who (UK),gu,ukwhoswho.com,4794,25,48,3522
-Mashable (sponsored content),gu,mashable.com,4557,22,279,3780
+Mashable (non-sponsored content); Mashable (sponsored content),gu,mashable.com,4557,22,279,3780
 Geni.com,d,geni.com,3463,3,32,2797
 Kickstarter,gu,kickstarter.com,3456,5,62,2223
 Jewish Virtual Library (JVL),gu,jewishvirtuallibrary.org,3205,6,59,2366
@@ -42,7 +39,7 @@ Daily Sabah,gu,dailysabah.com,2339,4,55,1720
 "Encyclopaedia Metallum (Metal Archives, MA)",d,metal-archives.com,2205,1,20,1704
 Statista,gu,statista.com,2074,12,32,1638
 Last.fm,d,last.fm,2042,4,27,1877
-"Atlas Obscura (""places"" articles)",gu,atlasobscura.com,2013,12,53,1914
+"Atlas Obscura (""articles"" articles); Atlas Obscura (""places"" articles)",gu,atlasobscura.com,2013,12,53,1914
 Bild,gu,bild.de,1968,2,65,1171
 "Rate Your Music (RYM, Cinemos, Glitchwave, Sonemic)",d,rateyourmusic.com,1955,2,23,1658
 Daily Kos,gu,dailykos.com,1917,4,17,1579
@@ -76,21 +73,21 @@ AlterNet,gu,alternet.org,457,1,12,423
 Wen Wei Po,d,wenweipo.com,420,1,6,368
 Worldometer (Worldometers),gu,worldometers.info,389,0,1,304
 DeviantArt,gu,deviantart.com,356,8,33,245
-The Washington Free Beacon (2012–2018),gu,freebeacon.com,356,1,7,309
+The Washington Free Beacon (2012–2018); The Washington Free Beacon (2019–present),gu,freebeacon.com,356,1,7,309
 Cracked.com,gu,cracked.com,302,4,13,271
 "Indymedia (Independent Media Center, IMC)",gu,indymedia.org,276,0,5,238
 An Phoblacht,gu,anphoblacht.com,259,3,4,216
 The Electronic Intifada (EI),gu,electronicintifada.net,249,1,3,193
-Al-Manar (controversial topics),gu,almanar.com.lb,238,0,0,168
+Al-Manar (controversial topics); Al-Manar (general topics),gu,almanar.com.lb,238,0,0,168
 Quora,gu,quora.com,220,1,2,201
-Sixth Tone (politics),gu,sixthtone.com,206,0,4,179
+Sixth Tone (general topics); Sixth Tone (politics),gu,sixthtone.com,206,0,4,179
 Know Your Meme (KYM),gu,knowyourmeme.com,184,2,9,159
 LADbible,gu,ladbible.com,183,1,5,171
 TV Tropes,gu,tvtropes.org,180,1,4,172
 Wikinews,gu,wikinews.org,177,1,3,153
 PanAm Post,gu,panampost.com,166,0,8,120
 Findmypast,gu,findmypast.com,165,0,6,150
-"NewsNation (UFOs, UAPs)",gu,newsnationnow.com,147,0,2,50
+"NewsNation (UFOs, UAPs); NewsNation (general topics)",gu,newsnationnow.com,147,0,2,50
 Marquis Who's Who (Who's Who in America),gu,marquiswhoswho.com,140,1,2,135
 The Onion,gu,theonion.com,138,1,9,78
 "CESNUR (Centro Studi sulle Nuove Religioni, Center for Studies on New Religions, Bitter Winter)",gu,cesnur.org,132,0,1,101
@@ -100,7 +97,6 @@ CounterPunch,gu,counterpunch.org,109,0,1,73
 The Truth About Guns (TTAG),gu,thetruthaboutguns.com,93,0,0,78
 Venezuelanalysis,gu,venezuelanalysis.com,81,0,1,66
 NGO Monitor (Non-governmental Organization Monitor),gu,ngo-monitor.org,79,0,0,56
-SourceWatch,gu,prwatch.org,77,0,0,67
 GoFundMe (YouCaring),gu,gofundme.com,72,0,2,66
 Consortium News,gu,consortiumnews.com,71,0,1,59
 Victims of Communism Memorial Foundation (VOC),gu,victimsofcommunism.org,62,0,4,52
@@ -115,8 +111,9 @@ The Daily Wire,gu,dailywire.com,24,0,0,7
 "The Epoch Times (New Tang Dynasty Television, Vision Times, Vision China Times)",d,epochtimes.de,22,0,1,22
 "Blaze Media (BlazeTV, Conservative Review, CRTV, TheBlaze)",gu,theblaze.com,20,0,0,6
 The Skwawkbox,gu,skwawkbox.org,18,0,0,11
+SourceWatch,gu,exposedbycmd.org,15,0,0,12
 "Zero Hedge (ZeroHedge, ZH)",d,zerohedge.com,13,0,0,2
-The Daily Caller,d,dailycaller.com,12,0,0,3
+Check Your Fact; The Daily Caller,d,dailycaller.com,12,0,0,3
 The Dorchester Review,gu,dorchesterreview.ca,12,0,0,6
 Guido Fawkes,gu,order-order.com,12,0,0,3
 Red Ventures,gu,redventures.com,11,0,0,5
@@ -135,14 +132,12 @@ MintPress News,d,mintpressnews.com,4,0,0,1
 National Enquirer,d,nationalenquirer.com,4,0,0,1
 "Taki's Magazine (Takimag, Taki's Top Drawer)",d,takimag.com,4,0,0,3
 "China Global Television Network (CGTN, CCTV International)",d,cgtn.com,3,0,0,2
-GB News,gu,gbnews.uk,3,0,0,1
 The Mail on Sunday,d,mailonsunday.co.uk,3,0,0,3
 The Post Millennial,gu,thepostmillennial.com,3,0,0,2
 "ANNA News (Abkhazian Network News Agency, Analytical Network News Agency)",d,anna-news.info,2,0,0,1
 CelebrityNetWorth (CNW),gu,celebritynetworth.com,2,0,0,2
 Crunchbase,d,crunchbase.com,2,0,0,2
 Jihad Watch,d,jihadwatch.org,2,0,0,1
-LiveLeak,gu,liveleak.com,2,0,0,1
 Newsmax,d,newsmax.com,2,0,0,1
 The Unz Review,d,unz.com,2,0,0,2
 VDARE,d,vdare.com,2,0,0,2
@@ -160,3 +155,4 @@ OpIndia,gu,opindia.com,1,0,0,1
 Press TV,d,presstv.ir,1,0,0,1
 "Republic TV (Republic World, Republic Bharat)",d,republicworld.com,1,0,0,1
 Voltaire Network,d,voltairenet.org,1,0,1,1
+X (Twitter),gu,x.com,1,0,0,1
