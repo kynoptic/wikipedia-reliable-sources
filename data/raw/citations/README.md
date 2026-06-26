@@ -25,7 +25,7 @@ regeneration-from-scratch steps follow.
 |---|---|---|
 | `zenodo-55004/enwiki_2016-06-01_CS1_citations.tsv` | Delpeuch, *Structured citations in the English Wikipedia* — [Zenodo 55004](https://doi.org/10.5281/zenodo.55004) | Download `enwiki_2016-06-01_CS1_citations.tsv.bz2` (the byte-exact original) and `bunzip2` |
 | `figshare-1299540/enwiki.tsv` | Halfaker et al., *Citations with identifiers in Wikipedia* — [figshare 1299540](https://doi.org/10.6084/m9.figshare.1299540) (2018-03-01 dump) | Download `enwiki.tsv.tar.gz` |
-| `figshare-6819710/enwiki.tsv` | Redi & Taraborelli, *Accessibility and topics of citations with identifiers in Wikipedia* — [figshare 6819710](https://doi.org/10.6084/m9.figshare.6819710) | Download `enwiki.tsv.gz` |
+| `figshare-6819710/enwiki.tsv` | Redi and Taraborelli, *Accessibility and topics of citations with identifiers in Wikipedia* — [figshare 6819710](https://doi.org/10.6084/m9.figshare.6819710) | Download `enwiki.tsv.gz` |
 | `figshare-4296476/enwiki_20161101_headings.tsv` | Farooqui (WMF), *Wikipedia Article Section Headings* — [figshare 4296476](https://doi.org/10.6084/m9.figshare.4296476) | Download the enwiki headings file |
 | `corradomonti/page2cat.tsv` | [`corradomonti/wikipedia-categories`](https://github.com/corradomonti/wikipedia-categories) (`page2cat.tsv.gz`, built from enwiki-20160407) | Download the repo's released `page2cat.tsv.gz` |
 | `featured-articles.csv` / `good-articles.csv` | [PetScan](https://petscan.wmcloud.org/) category export (~2020-03-30) | `python -m core.fetch_articles` |
@@ -35,7 +35,7 @@ Notes:
 * The `_CS1_citations` file is the decompressed Zenodo bz2; its `cite_type` +
   JSON-metadata format comes from [`dissemin/wikiciteparser`](https://github.com/dissemin/wikiciteparser)
   (the `2016-06-01` in the name is the Zenodo publication date — the dump itself
-  is enwiki-20160501). The earlier attribution to Singh, West & Colavizza was
+  is enwiki-20160501). The earlier attribution to Singh, West and Colavizza was
   incorrect.
 * `figshare-1299540/enwiki.tsv` is [`mwcites`](https://github.com/mediawiki-utilities/python-mwcites)
   identifier output (`doi, isbn, pmid, pmc, arxiv`); `figshare-6819710/enwiki.tsv`
@@ -83,9 +83,9 @@ Per-source subfolders:
 * **`figshare-1299540/enwiki.tsv`** (~298 MB) – Citation identifiers per
   revision: `page_id, page_title, rev_id, timestamp, type, id` (e.g. `doi`).
 * **`figshare-6819710/enwiki.tsv`** (~393 MB) – The same identifiers enriched
-  with article topic and open-access status: `page_id, page_name, revision_id,
-  timestamp, publication_type, publication_id, topic, open_access,
-  open_access_url`.
+  with article topic and open-access status: `page_id`, `page_name`, `revision_id`,
+  `timestamp`, `publication_type`, `publication_id`, `topic`, `open_access`,
+  `open_access_url`.
 * **`figshare-4296476/enwiki_20161101_headings.tsv`** (~1.1 GB) – Article
   section headings: `page_id, page_title, page_ns, heading_level, heading_text`.
 * **`corradomonti/page2cat.tsv`** (~363 MB) – Page-to-category mapping, one page
@@ -123,7 +123,7 @@ rather than the static 2016 dump.
 
 The 2016 citations join Featured/Good status by `page_id`, but the FA/GA snapshot
 predates the dump by four years. For a temporally consistent run, the pipeline
-also accepts the **2023 citation dataset** (Kokash & Colavizza,
+also accepts the **2023 citation dataset** (Kokash and Colavizza,
 [Zenodo 8107239](https://doi.org/10.5281/zenodo.8107239)) paired with a current
 FA/GA snapshot. That dataset is a partitioned Apache **Parquet** directory
 (`type_of_citation, page_title, URL, …`) with **no `page_id`**, so the join is on

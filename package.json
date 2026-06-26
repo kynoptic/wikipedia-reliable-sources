@@ -1,0 +1,18 @@
+{
+  "name": "wikipedia-reliable-sources",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Tooling configuration for linting this repository's Markdown.",
+  "type": "module",
+  "scripts": {
+    "lint:md": "markdownlint-cli2 \"**/*.md\"",
+    "lint:md:fix": "markdownlint-cli2 --fix \"**/*.md\""
+  },
+  "devDependencies": {
+    "markdownlint-cli2": "^0.22.1",
+    "markdownlint-styleguide": "github:kynoptic/markdownlint-styleguide#v4.0.4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

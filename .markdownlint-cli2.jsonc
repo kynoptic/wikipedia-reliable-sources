@@ -1,11 +1,24 @@
 {
-  // Recommended configuration for markdownlint-trap
-  // Enables all custom rules with balanced strictness
+  // Markdown linting for this repository, powered by markdownlint-styleguide.
+  // See https://github.com/kynoptic/markdownlint-styleguide for rule docs.
+  "ignores": [
+    "node_modules/**",
+    ".venv/**",
+    "**/.venv/**",
+    // GitHub templates follow their own conventions (no H1, <placeholder> syntax).
+    ".github/ISSUE_TEMPLATE/**",
+    ".github/pull_request_template.md"
+  ],
   "customRules": [
-    "markdownlint-trap"
+    "markdownlint-styleguide"
   ],
   "config": {
     "MD013": false,
+    // Keep human-readable spaced tables; do not enforce a compact style.
+    "MD060": false,
+    "MD024": {
+      "siblings_only": true
+    },
     "MD049": {
       "style": "asterisk"
     },
@@ -13,39 +26,50 @@
       "style": "asterisk"
     },
     "sentence-case-heading": {
-      "specialTerms": [
-        // Acronyms and abbreviations
-        "ADR",
-        "ADRs",
+      // Terms that MUST be uppercase in headings.
+      "acronyms": [
         "API",
         "APIs",
         "CLI",
-        "CSS",
-        "E2E",
+        "CSV",
         "HTML",
+        "HTTP",
         "JSON",
-        "PATCH",
-        // Technology and product names (always proper nouns)
+        "MOS",
+        "PHP",
+        "QID",
+        "QIDs",
+        "RSP",
+        "TSV",
+        "URL",
+        "URLs",
+        // File and document type conventions
+        "ADR",
+        "ADRs",
+        "CHANGELOG",
+        "README",
+        // All-caps emphasis terms (style convention in guidelines)
+        "FORBIDDEN",
+        "IMPORTANT",
+        "WARNING"
+      ],
+      // Terms whose capitalized form is allowed without flagging.
+      "properNouns": [
         "Git",
         "GitHub",
         "JavaScript",
         "Node",
+        "Python",
         "TypeScript",
+        "Wikidata",
+        "Wikipedia",
         // Multi-word GitHub product names
         "GitHub Issues",
         "GitHub Issue",
         "GitHub Projects",
         "GitHub Project",
-        "GitHub Markdown Alerts",
-        // File and document type conventions
-        "CHANGELOG",
-        "README",
         // Compound technical terms (with hyphens)
-        "Behavior-focused",
-        // All-caps emphasis terms (style convention in guidelines)
-        "FORBIDDEN",
-        "IMPORTANT",
-        "WARNING"
+        "Behavior-focused"
       ]
     },
     "backtick-code-elements": true,
@@ -53,9 +77,7 @@
     "no-dead-internal-links": {
       "allowPlaceholders": true
     },
-    "MD024": {
-      "siblings_only": true
-    },
-    "no-literal-ampersand": true
+    "no-literal-ampersand": true,
+    "no-empty-list-items": true
   }
 }

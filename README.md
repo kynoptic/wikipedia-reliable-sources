@@ -28,7 +28,6 @@ Additionally, sources frequently used in featured articles (FA) and good article
 - `data/` – Raw and processed datasets
 - `outputs/` – Generated analysis results
 
-
 ## How reliability affects rankings
 
 The reliability ratings are adjusted using the following parameters:
@@ -108,6 +107,7 @@ The project now includes a modular workflow for gathering citation data and norm
    ```bash
    python -m core.fetch_articles
    ```
+
    This writes `good_articles.json` and `featured_articles.json` under `data/raw/`.
 
 2. **Download wikitext for each article**
@@ -115,6 +115,7 @@ The project now includes a modular workflow for gathering citation data and norm
    ```bash
    python -m core.fetch_wikitext
    ```
+
    Wikitext files are stored in `data/raw/wikitext/`.
 
 3. **Extract citation URLs**
@@ -122,6 +123,7 @@ The project now includes a modular workflow for gathering citation data and norm
    ```bash
    python -m core.extract_refs
    ```
+
    The extracted references are written to `data/processed/refs_extracted.json`.
 
 4. **Normalize and rank sources**
@@ -129,6 +131,7 @@ The project now includes a modular workflow for gathering citation data and norm
    ```bash
    python -m core.clean_sources
    ```
+
   The script applies domain aliases from `data/alias_map.json`, writes canonical counts to `data/processed/sources_canonical.csv`, and outputs the top sources to `outputs/top_sources.csv`.
 
 ### Updating domain aliases

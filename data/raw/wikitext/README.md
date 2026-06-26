@@ -17,6 +17,6 @@ re-download.
 
 ## Related modules
 
-* [`../../../../core/fetch_wikitext.py`](../../../../core/fetch_wikitext.py) –
+* [`../../../core/fetch_wikitext.py`](../../../core/fetch_wikitext.py) –
   Downloads wikitext
 * [`../../README.md`](../../README.md) – Raw data overview
