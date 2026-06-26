@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import csv
 import re
+import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -57,8 +58,10 @@ STATUS_ACTION: dict[str, tuple[str, int | None]] = {
     "d": ("discard", None),
 }
 
-# Subdomain/aggregator Google rules the "-only" variant comments out so the
-# whitelist catch-all discards them rather than boosting an unreliable surface.
+# Google rules the "-only" variant comments out. With the rules removed, the
+# whitelist catch-all $discard drops these domains entirely — including
+# google.com, which the base rates `nc` (downrank) but which becomes discarded
+# in the whitelist variant, matching the hand-maintained goggle's decision.
 SUPPRESS_IN_ONLY = frozenset(
     {
         "google.com",
@@ -101,6 +104,18 @@ _RULE_RE = re.compile(
     r"(?:=(?P<value>\d+))?"
     r"(?:,site=(?P<domain>[^,\s]+))?$"
 )
+
+# A dotted hostname of alphanumeric/hyphen labels. Rejects values that would
+# break Goggle `site=` syntax (spaces, `$`, `=`, `,`, `/`) or carry no TLD. This
+# is a syntax guard, not a real-TLD check: a syntactically valid but wrong
+# resolution (e.g. ``ms.now`` for MSNBC) passes and must be fixed upstream.
+_VALID_DOMAIN_RE = re.compile(
+    r"^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$"
+)
+
+
+def _is_valid_domain(domain: str) -> bool:
+    return bool(_VALID_DOMAIN_RE.match(domain))
 
 
 # --- rule grammar ------------------------------------------------------------
@@ -151,7 +166,10 @@ def parse_goggle_rules(text: str) -> list[tuple[str, Rule]]:
             section = line
             continue
         rule = parse_rule_line(line)
-        if rule and not (rule.action == "discard" and not rule.domain):
+        # Require a domain: this drops the bare catch-all ``$discard`` (a
+        # variant-structural rule, re-added at render time) and rejects a
+        # domain-less ``$boost``/``$downrank`` that would otherwise apply globally.
+        if rule and rule.domain:
             pairs.append((section, rule))
     return pairs
 
@@ -194,13 +212,23 @@ def domain_status_from_ranking(path: Path) -> dict[str, str]:
     (should not occur) resolve to the most cautious status.
     """
     out: dict[str, str] = {}
+    skipped: list[str] = []
     with path.open(newline="", encoding="utf-8") as handle:
         for row in csv.DictReader(handle):
             domain = (row.get("domain") or "").strip().lower()
             status = (row.get("status") or "").strip()
             if not domain or not status:
                 continue
+            if not _is_valid_domain(domain):
+                skipped.append(domain)
+                continue
             out[domain] = _most_cautious([status, out[domain]]) if domain in out else status
+    if skipped:
+        print(
+            f"build_goggle: skipped {len(skipped)} malformed domain(s): "
+            f"{', '.join(sorted(set(skipped)))}",
+            file=sys.stderr,
+        )
     return out
 
 
@@ -218,7 +246,14 @@ def merge_rules(
 
 
 def load_overlay(text: str) -> list[tuple[str, Rule]]:
-    """Parse the curated overlay file into ``(section, rule)`` pairs."""
+    """Parse the curated overlay file into ``(section, rule)`` pairs.
+
+    Overlay domains are not run through ``_is_valid_domain``: the overlay is
+    pre-audited, source-controlled curation, and it carries hand rules the data
+    cannot derive (e.g. the single-label ``site=letour``). Validating here would
+    drop such rules and break the superset guarantee. Domain validation is for the
+    untrusted CSV data layer only.
+    """
     return parse_goggle_rules(text)
 
 
