@@ -1,86 +1,38 @@
 # `AGENTS.md` – Project guide for AI agents
 
-## Project overview and goals
+## Project overview
 
-Wikipedia Goggles provides Brave Search Goggle definitions and tools for processing Wikipedia's reliability data. Scripts fetch article lists, download wikitext, extract citation URLs, and rank domains so search results favor reputable sources.
+Wikipedia Goggles builds two [Brave Search Goggle](https://github.com/brave/goggles-quickstart) definitions that rerank search results toward sources the Wikipedia community considers reliable. A Python pipeline fetches reliability data, normalizes citation domains, and regenerates the `.goggle` files. Stack: Python 3, `requests`, `beautifulsoup4`, `mwparserfromhell`, `pytest`.
 
-The long-term goal is to automatically fetch the Perennial Sources table, other reliable source lists from WikiProjects, and sources used in Featured Articles and Good Articles to automatically update the Goggle definition.
+## Commands
 
-## Repository structure
+```bash
+pip install -r requirements.txt   # install dependencies
+pytest                            # run the test suite
+python -m core.build_goggle       # regenerate both .goggle files from reliability data
+```
 
-- `/core/` – Python modules for fetching and processing data
-  - `fetch_articles.py` – Download lists of featured and good articles
-  - `fetch_wikitext.py` – Retrieve article wikitext
-  - `extract_refs.py` – Parse citation URLs
-  - `clean_sources.py` – Normalize and rank references
-  - `/utils/` – Shared helpers such as `normalize_url.py`
-- `/scripts/` – Standalone command line utilities
-  - `fetch_perennial_sources.py` – Parse perennial source tables
-  - `update_checker.py` – Detect page updates and regenerate outputs
-- `/data/` – Raw and processed datasets
-- `/outputs/` – Generated reports
-- `/tests/` – Pytest suite covering modules and scripts
-- `/docs/` – Roadmap and configuration notes
-- `.github/` – Continuous integration workflow
-- `requirements.txt` – Python dependencies
-- `wikipedia-reliable-sources.goggle` – Brave Search Goggle definition
+The full data pipeline (fetch → normalize → build) is documented in the [build pipeline guide](docs/pipeline.md).
 
-### Key files
+## Architecture
 
-- `.github/workflows/ci.yml` – Runs tests on push and pull request
+- `core/` – pipeline modules
+  - `fetch_articles.py`, `fetch_wikitext.py`, `extract_refs.py` – gather Featured/Good-article citations
+  - `clean_sources.py`, `process_citations.py` – normalize and rank citation domains
+  - `bridge_reliability.py` – merge the rated source lists into `outputs/reliability_ranking.csv`
+  - `build_goggle.py` – emit the two `.goggle` files from the ranking plus `goggle_overlay.txt`
+  - `utils/` – shared helpers such as `normalize_url.py`
+- `scripts/` – standalone CLIs: `fetch_perennial_sources.py`, `fetch_wikiproject_sources.py`, `update_checker.py`
+- `data/` – raw and processed datasets; `outputs/` – generated rankings and reports
+- `tests/` – pytest suite; `.github/workflows/ci.yml` – runs `pytest` on push and PR
+- `wikipedia-reliable-sources.goggle`, `wikipedia-reliable-sources-only.goggle` – build artifacts, never hand-edited
 
-## Environment setup and commands
+## Conventions
 
-- **Install dependencies**:
+- Type hints and docstrings on all new Python; unit tests for new functionality.
+- The `.goggle` files are generated. Edit reliability data or `goggle_overlay.txt`, then rebuild — never edit a `.goggle` by hand.
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+## Constraints
 
-- **Run scripts** (examples):
-
-    ```bash
-    python scripts/fetch_perennial_sources.py
-    python scripts/update_checker.py
-    ```
-
-- **Run tests**:
-
-    ```bash
-    pytest
-    ```
-
-## Code clarity and documentation standards
-
-- Follow PEP 8 style conventions
-- Include type hints and docstrings on all new Python code
-- Provide unit tests for new functionality and keep existing tests passing
-- Run `pytest` before each commit
-
-## Tools and capabilities
-
-- `requests` and `beautifulsoup4` for HTTP and HTML parsing
-- `mwparserfromhell` for wikitext parsing
-- GitHub Actions runs `pytest` via `ci.yml`
-
-## Agent roles and interaction
-
-- Single autonomous agent responsible for planning, coding, and testing
-
-## Constraints and safety rules
-
-- **ALWAYS** run `pytest` and ensure it passes before committing
-
-## Known issues and context
-
-- Integration tests for the update workflow are still missing
-- Documentation needs examples of API usage
-
-## Example tasks
-
-- **Add integration tests for update workflow**
-  - Edit: `tests/test_update_checker.py`
-  - Validate with: `pytest`
-- **Build API to serve structured data**
-  - Add a new module under `core/`
-  - Provide tests and update documentation
+- **ALWAYS** run `pytest` and ensure it passes before committing.
+- `goggle_overlay.txt` holds rules the generator cannot yet derive; the curated overlay wins on conflict with the base layer.

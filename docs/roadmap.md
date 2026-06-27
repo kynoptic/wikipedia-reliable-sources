@@ -6,7 +6,7 @@ Automatically fetch the Perennial Sources table, other reliable-source lists fro
 
 ## Status
 
-The loop is closed: `core.build_goggle` regenerates both `.goggle` files from the reliability data. A data-derived base layer is merged with a curated overlay ([`goggle_overlay.txt`](../goggle_overlay.txt)) that holds rules the data cannot yet produce.
+The loop is closed: `core.build_goggle` regenerates both `.goggle` files from the reliability data. A data-derived base layer is merged with a [curated overlay file](../goggle_overlay.txt) that holds rules the data cannot yet produce.
 
 ## Next: generate path-qualified rules
 
