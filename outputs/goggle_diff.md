@@ -2,12 +2,12 @@
 
 What the data-driven base produces versus the committed goggle.
 
-- Base rules generated: **369**
+- Base rules generated: **368**
 - Generated-only (new from data): **74**
 - Current-only, path-qualified (overlay `# path-qualified`): **444**
-- Current-only, plain (overlay `# manual`): **3210**
-- Conflicts (curated value kept; review): **23**
-- Total preserved in overlay: **3677**
+- Current-only, plain (overlay `# manual`): **3211**
+- Conflicts (curated value kept; review): **21**
+- Total preserved in overlay: **3676**
 
 ## Generated-only (additions the automation contributes)
 
@@ -23,6 +23,7 @@ What the data-driven base produces versus the committed goggle.
 - `$discard,site=change.org`
 - `$boost=2,site=csicop.org`
 - `$downrank=2,site=dailynk.com`
+- `$discard,site=dailysignal.com`
 - `$boost=2,site=deseret.com`
 - `$discard,site=deviantart.com`
 - `$discard,site=dexerto.com`
@@ -58,7 +59,6 @@ What the data-driven base produces versus the committed goggle.
 - `$boost=2,site=meduza.io`
 - `$downrank=2,site=metalsucks.com`
 - `$downrank=2,site=middleeastmonitor.com`
-- `$boost=2,site=ms.now`
 - `$downrank=2,site=news.cn`
 - `$discard,site=newsnationnow.com`
 - `$discard,site=ngo-monitor.org`
@@ -100,8 +100,6 @@ What the data-driven base produces versus the committed goggle.
 | encyclopedia.com | `$downrank=2,site=encyclopedia.com` | `$boost=2,site=encyclopedia.com` |
 | forbes.com | `$downrank=2,site=forbes.com` | `$discard,site=forbes.com` |
 | foxnews.com | `$discard,site=foxnews.com` | `$boost=2,site=foxnews.com` |
-| google.com | `$downrank=2,site=google.com` | `$boost=2,site=google.com` |
-| heritage.org | `$discard,site=heritage.org` | `$boost=2,site=heritage.org` |
 | hopenothate.org.uk | `$boost=2,site=hopenothate.org.uk` | `$downrank=2,site=hopenothate.org.uk` |
 | investopedia.com | `$discard,site=investopedia.com` | `$downrank=2,site=investopedia.com` |
 | rollingstone.com | `$discard,site=rollingstone.com` | `$boost=2,site=rollingstone.com` |
@@ -116,4 +114,4 @@ What the data-driven base produces versus the committed goggle.
 
 ## Current-only — preserved in the overlay
 
-Path-qualified (444) and plain (3210) rules the base cannot derive. These live in `goggle_overlay.txt`; the path-qualified set is the target for future generation.
+Path-qualified (444) and plain (3211) rules the base cannot derive. These live in `goggle_overlay.txt`; the path-qualified set is the target for future generation.

@@ -58,10 +58,25 @@ STATUS_ACTION: dict[str, tuple[str, int | None]] = {
     "d": ("discard", None),
 }
 
+# Product and portal domains that must not generate a base site= rule.
+# These entries in the ranking CSV describe a specific product or portal (e.g.
+# "Google Maps (Google Street View)" rated nc) that resolves to a generic
+# registrable domain shared by the entire platform. Emitting a base rule for
+# the registrable domain would downrank (or otherwise rate) the whole platform
+# rather than the narrow product the rating describes. These domains are
+# excluded from base rule generation; human curation via goggle_overlay.txt
+# remains fully expressible.
+PRODUCT_PORTAL_DOMAINS: frozenset[str] = frozenset(
+    {
+        "google.com",
+    }
+)
+
 # Google rules the "-only" variant comments out. With the rules removed, the
 # whitelist catch-all $discard drops these domains entirely — including
-# google.com, which the base rates `nc` (downrank) but which becomes discarded
-# in the whitelist variant, matching the hand-maintained goggle's decision.
+# google.com, which the base no longer rates (excluded via
+# PRODUCT_PORTAL_DOMAINS); the whitelist catch-all then drops it, matching the
+# hand-maintained goggle's decision.
 SUPPRESS_IN_ONLY = frozenset(
     {
         "google.com",
@@ -181,9 +196,14 @@ def generate_base_rules(domain_status: dict[str, str]) -> dict[tuple[str, str], 
     """Map each ``{domain: status}`` entry to a plain ``site=`` rule.
 
     Domains rated ``m`` (marginal) or with an unrecognized status get no rule.
+    Domains in :data:`PRODUCT_PORTAL_DOMAINS` are excluded: their ranking
+    entry describes a narrow product or portal, not the registrable domain as a
+    whole, so a broad ``site=`` rule would misrepresent the entire platform.
     """
     rules: dict[tuple[str, str], Rule] = {}
     for domain, status in domain_status.items():
+        if domain in PRODUCT_PORTAL_DOMAINS:
+            continue
         mapped = STATUS_ACTION.get(status)
         if mapped is None:
             continue

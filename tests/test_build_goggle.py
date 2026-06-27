@@ -7,6 +7,7 @@ import pytest
 
 from core.build_goggle import (
     GENERATED_SECTION,
+    PRODUCT_PORTAL_DOMAINS,
     Diff,
     Rule,
     _is_valid_domain,
@@ -321,3 +322,52 @@ def test_default_header_names_the_default_variant() -> None:
 def test_only_header_names_the_only_variant() -> None:
     out = render_goggle([], "only")
     assert out.startswith("! name: Wikipedia reliable sources only\n")
+
+
+# --- product/portal domain exclusion -----------------------------------------
+
+
+def test_product_portal_domain_excluded_from_base_rules() -> None:
+    # A product/portal entry (e.g. "Google Maps (Street View)" rated nc) that
+    # resolves to a generic registrable domain must not produce a base site= rule.
+    for domain in PRODUCT_PORTAL_DOMAINS:
+        domain_status = {domain: "nc", "legit.com": "gr"}
+        base = generate_base_rules(domain_status)
+        assert ("", domain) not in base, f"{domain} should be excluded from base rules"
+        assert ("", "legit.com") in base, "non-excluded domain must still get a rule"
+
+
+def test_legitimate_domains_still_get_base_rules(tmp_path: Path) -> None:
+    # Regression: PRODUCT_PORTAL_DOMAINS must not accidentally exclude ordinary
+    # editorial domains. Domains that are not products/portals still produce a
+    # base rule when read from the ranking CSV.
+    csv_path = tmp_path / "ranking.csv"
+    csv_path.write_text(
+        "source_name,status,domain\n"
+        "BBC,gr,bbc.co.uk\n"
+        "NYT,gr,nytimes.com\n"
+    )
+    domain_status = domain_status_from_ranking(csv_path)
+    base = generate_base_rules(domain_status)
+    # Neither bbc.co.uk nor nytimes.com are in PRODUCT_PORTAL_DOMAINS
+    assert ("", "bbc.co.uk") in base
+    assert ("", "nytimes.com") in base
+
+
+def test_product_portal_excludes_exact_domain_only() -> None:
+    # Edge case: the exclusion matches the exact registrable domain only. A
+    # product entry (google.com) is excluded, but its subdomains — which appear
+    # as separate, distinguishable entries (maps./news.google.com) — must not be
+    # swept up by the set. This guards a legitimate editorial source on a
+    # subdomain of an excluded registrable domain.
+    domain_status = {
+        "google.com": "nc",
+        "maps.google.com": "d",
+        "news.google.com": "gr",
+    }
+    base = generate_base_rules(domain_status)
+    # google.com excluded because it's in PRODUCT_PORTAL_DOMAINS
+    assert ("", "google.com") not in base
+    # Subdomains are distinct entries and must not be excluded by the set
+    assert ("", "maps.google.com") in base
+    assert ("", "news.google.com") in base
