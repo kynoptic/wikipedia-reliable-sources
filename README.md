@@ -155,6 +155,10 @@ This reads `outputs/reliability_ranking.csv` (produced by `core.bridge_reliabili
 
 On a conflict, the curated overlay value wins. Edit `goggle_overlay.txt` by hand to maintain rules the generator can't produce.
 
+### Domain exclusions
+
+Some ranking entries describe a narrow product or portal (e.g. "Google Maps (Google Street View)" rated `nc`) that resolves to a generic registrable domain shared by the whole platform. Emitting a `site=google.com` rule from such an entry would downrank every Google property, not just Street View. These domains are listed in `PRODUCT_PORTAL_DOMAINS` in `core/build_goggle.py` and are excluded from base rule generation. Human curation via `goggle_overlay.txt` remains fully expressible for those domains.
+
 ### Bootstrapping the overlay
 
 The overlay is seeded once from the existing hand-maintained goggle, capturing every rule the base does not reproduce:
