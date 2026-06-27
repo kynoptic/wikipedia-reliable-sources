@@ -1,6 +1,6 @@
 {
   "name": "wikipedia-reliable-sources",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "Tooling configuration for linting this repository's Markdown.",
   "type": "module",
