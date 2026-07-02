@@ -1,0 +1,9 @@
+issue_source: "label: ready"        # gate night-shift work behind an explicit label
+max_issues: 3
+concurrency: 2                      # small repo; 2 worktrees is plenty
+pre_flight_command: "true"          # no ports/simulators to reset in this project
+escalation_label: night-shift-blocked
+report_dir: ./night-shift-reports
+release_threshold: 3
+max_runtime_minutes: 240
+rollback_mode: revert-pr
