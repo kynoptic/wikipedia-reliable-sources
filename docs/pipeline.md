@@ -100,7 +100,7 @@ The pass writes two auditable outputs, both requiring human review before they a
 - `outputs/safe_add_candidates.csv` — columns `domain, fa_citations, ga_citations, total_citations, proposed_action`;
 - `outputs/safe_add_overlay_seed.txt` — ready-to-paste `$boost=2,site=…` lines with a header comment marking them as a proposal, not applied.
 
-Like the gap report, the pass is keyed on `data/processed/citations_2023_by_domain.csv`; when that table is absent (it is gitignored, so CI never has it) the pass is skipped with a printed notice, and neither output file is written. Accepting a proposal is a manual step: paste the reviewed line(s) from `safe_add_overlay_seed.txt` into `goggle_overlay.txt`'s manual section and rebuild — this is also what causes the overlay's manual section to shrink over time as promotions replace hand-curated entries with data-driven ones.
+Like the gap report, the pass is keyed on `data/processed/citations_2023_by_domain.csv`; when that table is absent (it is gitignored, so CI never has it) the pass is skipped with a printed notice, and neither output file is written. The two committed output files are therefore a point-in-time snapshot of a manual local run — CI never regenerates them, so they stay as-committed until someone reruns the build against a current citation table. Accepting a proposal is a manual step: paste the reviewed line(s) from `safe_add_overlay_seed.txt` into `goggle_overlay.txt`'s manual section and rebuild — this is also what causes the overlay's manual section to shrink over time as promotions replace hand-curated entries with data-driven ones.
 
 ### Bootstrapping the overlay
 
