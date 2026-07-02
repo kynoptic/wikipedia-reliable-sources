@@ -6,10 +6,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import pytest
 
 from core.build_goggle import (
+    DEFAULT_SAFE_ADD_FA_FLOOR,
+    DEFAULT_SAFE_ADD_FA_THRESHOLD,
+    DEFAULT_SAFE_ADD_GA_THRESHOLD,
     GENERATED_SECTION,
     PRODUCT_PORTAL_DOMAINS,
     Diff,
     Rule,
+    SafeAddCandidate,
     _is_valid_domain,
     diff_rules,
     domain_status_from_ranking,
@@ -23,7 +27,9 @@ from core.build_goggle import (
     render_diff_md,
     render_goggle,
     render_rule,
+    render_safe_add_overlay_seed,
     rule_key,
+    safe_add_candidates,
     seed_overlay,
 )
 
@@ -371,3 +377,248 @@ def test_product_portal_excludes_exact_domain_only() -> None:
     # Subdomains are distinct entries and must not be excluded by the set
     assert ("", "maps.google.com") in base
     assert ("", "news.google.com") in base
+
+
+# --- safe-add pass (FA/GA-weighted proposals) --------------------------------
+
+
+def _citations(fa: int = 0, ga: int = 0, total: int | None = None, articles: int = 0) -> dict:
+    return {
+        "total": total if total is not None else fa + ga,
+        "fa": fa,
+        "ga": ga,
+        "articles": articles,
+    }
+
+
+def test_safe_add_proposes_domain_at_or_above_fa_threshold() -> None:
+    citations = {"strong.com": _citations(fa=DEFAULT_SAFE_ADD_FA_THRESHOLD)}
+    proposals = safe_add_candidates(citations, rated_domains=set(), overlay_domains=set())
+    assert [p.domain for p in proposals] == ["strong.com"]
+
+
+def test_safe_add_rejects_domain_below_fa_threshold_without_ga_route() -> None:
+    citations = {"weak.com": _citations(fa=DEFAULT_SAFE_ADD_FA_THRESHOLD - 1)}
+    proposals = safe_add_candidates(citations, rated_domains=set(), overlay_domains=set())
+    assert proposals == []
+
+
+def test_safe_add_ties_at_threshold_are_proposed() -> None:
+    # A tie at the exact threshold qualifies (>=, not >).
+    citations = {"tie.com": _citations(fa=DEFAULT_SAFE_ADD_FA_THRESHOLD)}
+    proposals = safe_add_candidates(
+        citations, rated_domains=set(), overlay_domains=set(), fa_threshold=200
+    )
+    assert any(p.domain == "tie.com" for p in proposals)
+    citations = {"just_below.com": _citations(fa=199)}
+    proposals = safe_add_candidates(
+        citations, rated_domains=set(), overlay_domains=set(), fa_threshold=200
+    )
+    assert proposals == []
+
+
+def test_safe_add_ga_route_requires_nonzero_fa_floor_and_ga_threshold() -> None:
+    # GA is a secondary signal: it only qualifies a domain in combination with a
+    # nonzero FA floor. A domain below the FA floor is never proposed on GA alone.
+    citations = {
+        "ga_only.com": _citations(fa=DEFAULT_SAFE_ADD_FA_FLOOR - 1, ga=10_000),
+    }
+    proposals = safe_add_candidates(citations, rated_domains=set(), overlay_domains=set())
+    assert proposals == []
+
+
+def test_safe_add_ga_route_qualifies_when_fa_floor_and_ga_threshold_met() -> None:
+    citations = {
+        "fa_ga.com": _citations(
+            fa=DEFAULT_SAFE_ADD_FA_FLOOR, ga=DEFAULT_SAFE_ADD_GA_THRESHOLD
+        ),
+    }
+    proposals = safe_add_candidates(citations, rated_domains=set(), overlay_domains=set())
+    assert [p.domain for p in proposals] == ["fa_ga.com"]
+
+
+def test_safe_add_ga_route_below_ga_threshold_is_rejected() -> None:
+    citations = {
+        "fa_low_ga.com": _citations(
+            fa=DEFAULT_SAFE_ADD_FA_FLOOR, ga=DEFAULT_SAFE_ADD_GA_THRESHOLD - 1
+        ),
+    }
+    proposals = safe_add_candidates(citations, rated_domains=set(), overlay_domains=set())
+    assert proposals == []
+
+
+def test_safe_add_fa_outweighs_ga_when_both_present() -> None:
+    # A domain with FA alone above the primary threshold qualifies even with no GA.
+    citations = {
+        "fa_only.com": _citations(fa=DEFAULT_SAFE_ADD_FA_THRESHOLD, ga=0),
+    }
+    proposals = safe_add_candidates(citations, rated_domains=set(), overlay_domains=set())
+    assert [p.domain for p in proposals] == ["fa_only.com"]
+
+
+def test_safe_add_excludes_domain_already_rated() -> None:
+    citations = {"rated.com": _citations(fa=DEFAULT_SAFE_ADD_FA_THRESHOLD)}
+    proposals = safe_add_candidates(
+        citations, rated_domains={"rated.com"}, overlay_domains=set()
+    )
+    assert proposals == []
+
+
+def test_safe_add_excludes_domain_already_in_overlay() -> None:
+    citations = {"overlaid.com": _citations(fa=DEFAULT_SAFE_ADD_FA_THRESHOLD)}
+    proposals = safe_add_candidates(
+        citations, rated_domains=set(), overlay_domains={"overlaid.com"}
+    )
+    assert proposals == []
+
+
+def test_safe_add_excludes_product_portal_domains() -> None:
+    for domain in PRODUCT_PORTAL_DOMAINS:
+        citations = {domain: _citations(fa=DEFAULT_SAFE_ADD_FA_THRESHOLD)}
+        proposals = safe_add_candidates(citations, rated_domains=set(), overlay_domains=set())
+        assert proposals == [], f"{domain} must not be proposed (product/portal)"
+
+
+def test_safe_add_excludes_non_editorial_domains() -> None:
+    # Government/education/archive domains are filtered like the gap report.
+    citations = {
+        "example.gov": _citations(fa=DEFAULT_SAFE_ADD_FA_THRESHOLD),
+        "archive.org": _citations(fa=DEFAULT_SAFE_ADD_FA_THRESHOLD),
+    }
+    proposals = safe_add_candidates(citations, rated_domains=set(), overlay_domains=set())
+    assert proposals == []
+
+
+def test_safe_add_heavily_cited_non_fa_ga_domain_is_not_proposed() -> None:
+    # High total citations alone (no FA/GA weight) must not qualify.
+    citations = {"popular_but_unvetted.com": _citations(fa=0, ga=0, total=1_000_000)}
+    proposals = safe_add_candidates(citations, rated_domains=set(), overlay_domains=set())
+    assert proposals == []
+
+
+def test_safe_add_output_is_sorted_by_fa_then_domain() -> None:
+    citations = {
+        "b.com": _citations(fa=DEFAULT_SAFE_ADD_FA_THRESHOLD),
+        "a.com": _citations(fa=DEFAULT_SAFE_ADD_FA_THRESHOLD + 100),
+    }
+    proposals = safe_add_candidates(citations, rated_domains=set(), overlay_domains=set())
+    assert [p.domain for p in proposals] == ["a.com", "b.com"]
+
+
+def test_safe_add_candidate_carries_citation_counts_and_action() -> None:
+    citations = {
+        "strong.com": _citations(
+            fa=DEFAULT_SAFE_ADD_FA_THRESHOLD, ga=10, total=DEFAULT_SAFE_ADD_FA_THRESHOLD + 10
+        ),
+    }
+    proposals = safe_add_candidates(citations, rated_domains=set(), overlay_domains=set())
+    candidate = proposals[0]
+    assert candidate == SafeAddCandidate(
+        domain="strong.com",
+        fa_citations=DEFAULT_SAFE_ADD_FA_THRESHOLD,
+        ga_citations=10,
+        total_citations=DEFAULT_SAFE_ADD_FA_THRESHOLD + 10,
+        proposed_action="boost=2",
+    )
+
+
+def test_render_safe_add_overlay_seed_produces_boost_lines_with_header() -> None:
+    candidates = [
+        SafeAddCandidate(
+            domain="strong.com",
+            fa_citations=500,
+            ga_citations=10,
+            total_citations=510,
+            proposed_action="boost=2",
+        )
+    ]
+    text = render_safe_add_overlay_seed(candidates)
+    assert text.startswith("!")  # header comment marks this as a proposal, not applied
+    assert "proposal" in text.lower()
+    assert "$boost=2,site=strong.com" in text
+
+
+def test_render_safe_add_overlay_seed_empty_candidates_still_has_header() -> None:
+    text = render_safe_add_overlay_seed([])
+    assert text.startswith("!")
+    assert ",site=" not in text
+
+
+def test_main_safe_add_pass_skips_gracefully_without_citation_table(tmp_path: Path) -> None:
+    # CI has no citation table (gitignored); the pass must not error, matching
+    # the gap-report's graceful-skip behavior.
+    ranking = tmp_path / "ranking.csv"
+    ranking.write_text("source_name,status,domain\nGood,gr,good.com\n")
+    rc = main([
+        "--ranking", str(ranking),
+        "--overlay", str(tmp_path / "missing_overlay.txt"),
+        "--outdir", str(tmp_path),
+        "--citations", str(tmp_path / "absent.csv"),
+        "--gaps-out", str(tmp_path / "gaps.csv"),
+        "--safe-add-candidates-out", str(tmp_path / "safe_add_candidates.csv"),
+        "--safe-add-overlay-seed-out", str(tmp_path / "safe_add_overlay_seed.txt"),
+    ])
+    assert rc == 0
+    assert not (tmp_path / "safe_add_candidates.csv").exists()
+    assert not (tmp_path / "safe_add_overlay_seed.txt").exists()
+
+
+def test_main_safe_add_pass_writes_outputs_when_citations_present(tmp_path: Path) -> None:
+    ranking = tmp_path / "ranking.csv"
+    ranking.write_text("source_name,status,domain\nGood,gr,good.com\n")
+    citations = tmp_path / "citations.csv"
+    citations.write_text(
+        "domain_url,suffix_url,total_citations,fa_citations,ga_citations,distinct_articles\n"
+        f"strong,com,{DEFAULT_SAFE_ADD_FA_THRESHOLD + 10},{DEFAULT_SAFE_ADD_FA_THRESHOLD},5,100\n"
+        "good,com,50,10,5,20\n"  # already rated; must be excluded
+    )
+    candidates_out = tmp_path / "safe_add_candidates.csv"
+    seed_out = tmp_path / "safe_add_overlay_seed.txt"
+    rc = main([
+        "--ranking", str(ranking),
+        "--overlay", str(tmp_path / "missing_overlay.txt"),
+        "--outdir", str(tmp_path),
+        "--citations", str(citations),
+        "--gaps-out", str(tmp_path / "gaps.csv"),
+        "--safe-add-candidates-out", str(candidates_out),
+        "--safe-add-overlay-seed-out", str(seed_out),
+    ])
+    assert rc == 0
+    candidates_text = candidates_out.read_text()
+    assert "strong.com" in candidates_text
+    assert "good.com" not in candidates_text
+    seed_text = seed_out.read_text()
+    assert "$boost=2,site=strong.com" in seed_text
+
+
+def test_safe_add_pass_does_not_change_built_goggle_output(tmp_path: Path) -> None:
+    # The safe-add pass is purely a reviewable proposal; it must never mutate the
+    # rendered goggle files themselves.
+    ranking = tmp_path / "ranking.csv"
+    ranking.write_text("source_name,status,domain\nGood,gr,good.com\n")
+    citations = tmp_path / "citations.csv"
+    citations.write_text(
+        "domain_url,suffix_url,total_citations,fa_citations,ga_citations,distinct_articles\n"
+        f"strong,com,{DEFAULT_SAFE_ADD_FA_THRESHOLD + 10},{DEFAULT_SAFE_ADD_FA_THRESHOLD},5,100\n"
+    )
+
+    def build(citations_path: Path) -> tuple[str, str]:
+        outdir = tmp_path / citations_path.stem
+        outdir.mkdir()
+        main([
+            "--ranking", str(ranking),
+            "--overlay", str(tmp_path / "missing_overlay.txt"),
+            "--outdir", str(outdir),
+            "--citations", str(citations_path),
+            "--gaps-out", str(outdir / "gaps.csv"),
+            "--safe-add-candidates-out", str(outdir / "safe_add_candidates.csv"),
+            "--safe-add-overlay-seed-out", str(outdir / "safe_add_overlay_seed.txt"),
+        ])
+        default = (outdir / "wikipedia-reliable-sources.goggle").read_text()
+        only = (outdir / "wikipedia-reliable-sources-only.goggle").read_text()
+        return default, only
+
+    absent = tmp_path / "absent.csv"
+    with_table = build(citations)
+    without_table = build(absent)
+    assert with_table == without_table

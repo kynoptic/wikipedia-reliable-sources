@@ -83,6 +83,25 @@ This reads `outputs/reliability_ranking.csv` (produced by `core.bridge_reliabili
 
 Some ranking entries describe a narrow product or portal (for example, "Google Maps (Google Street View)" rated `nc`) that resolves to a generic registrable domain shared by the whole platform. Emitting a `site=google.com` rule from such an entry would downrank every Google property, not just Street View. These domains are listed in `PRODUCT_PORTAL_DOMAINS` in `core/build_goggle.py` and excluded from base rule generation. Human curation via `goggle_overlay.txt` remains fully expressible for those domains.
 
+### Safe-add pass (FA/GA-weighted proposals)
+
+Heavily-cited domains with no reliability rating surface in the gap report above, but the build also runs a conservative *safe-add* pass over the same citation table. It proposes `$boost=2` additions for domains whose Featured/Good-article citation weight is strong enough to treat as a reliability signal in its own right — without silently mutating the goggle. A domain qualifies only when **all** of the following hold:
+
+- it carries no reliability rating at all (so anything rated unreliable/deprecated anywhere is excluded, since a rated domain always appears in the ranking);
+- it clears the FA-weighted threshold — `fa_citations >= --safe-add-fa-threshold` (default **450**) — or the secondary GA route: `fa_citations >= --safe-add-fa-floor` (default **100**) **and** `ga_citations >= --safe-add-ga-threshold` (default **3500**). GA is a weaker signal than FA, so it never qualifies a domain on its own — it only adds evidence once the FA floor is met;
+- it passes the same editorial/infrastructure filter as the gap report (drops government/education/military and archive/catalogue domains);
+- it is not in `PRODUCT_PORTAL_DOMAINS`;
+- it is not already covered by any rule in `goggle_overlay.txt`.
+
+**Threshold rationale:** the defaults were chosen empirically from the local citation table's FA-count distribution among unrated editorial domains. At `fa_threshold=450`, 23 domains qualify — all recognizable editorial or reference outlets (e.g. `bbc.com`, `telegraph.co.uk`, `variety.com`, `newspapers.com`). The secondary GA route (`fa_floor=100`, `ga_threshold=3500`) adds 5 more domains with strong GA weight but FA below the primary threshold (e.g. `animenewsnetwork.com`, `baseball-reference.com`), for a combined proposal set of 28 domains — comfortably under a ~30-domain, high-precision target. Loosening either threshold grows the set quickly (e.g. `fa_threshold=100` alone yields ~200 domains), trading precision for recall; the defaults favor precision.
+
+The pass writes two auditable outputs, both requiring human review before they affect a committed goggle:
+
+- `outputs/safe_add_candidates.csv` — columns `domain, fa_citations, ga_citations, total_citations, proposed_action`;
+- `outputs/safe_add_overlay_seed.txt` — ready-to-paste `$boost=2,site=…` lines with a header comment marking them as a proposal, not applied.
+
+Like the gap report, the pass is keyed on `data/processed/citations_2023_by_domain.csv`; when that table is absent (it is gitignored, so CI never has it) the pass is skipped with a printed notice, and neither output file is written. Accepting a proposal is a manual step: paste the reviewed line(s) from `safe_add_overlay_seed.txt` into `goggle_overlay.txt`'s manual section and rebuild — this is also what causes the overlay's manual section to shrink over time as promotions replace hand-curated entries with data-driven ones.
+
 ### Bootstrapping the overlay
 
 The overlay is seeded once from the existing hand-maintained goggle, capturing every rule the base does not reproduce:

@@ -27,6 +27,7 @@ from pathlib import Path
 
 from core.bridge_reliability import (
     UNRELIABLE,
+    _is_editorial_candidate,
     _most_cautious,
     coverage_gaps,
     load_domain_citations,
@@ -453,6 +454,156 @@ def build_ordered_rules(
     return ordered
 
 
+# --- safe-add pass (FA/GA-weighted proposals) --------------------------------
+
+
+@dataclass(frozen=True)
+class SafeAddCandidate:
+    """A domain proposed for a ``$boost`` rule on FA/GA citation evidence.
+
+    This is a *proposal*, not an applied rule: it is written to a report and an
+    overlay-seed file for human review, and never mutates ``goggle_overlay.txt``
+    or a rendered ``.goggle`` file.
+    """
+
+    domain: str
+    fa_citations: int
+    ga_citations: int
+    total_citations: int
+    proposed_action: str
+
+
+# Conservative defaults, chosen empirically from the local FA/GA-count
+# distribution among unrated editorial domains (see docs/pipeline.md for the
+# full rationale and the counts observed at each threshold):
+#
+# * ``DEFAULT_SAFE_ADD_FA_THRESHOLD`` (450): the primary qualifying route.
+#   Domains with at least this many distinct FA citations are proposed
+#   regardless of GA count. At 450 the candidate set is 23 domains, all
+#   recognizable editorial/reference outlets (e.g. bbc.com, telegraph.co.uk,
+#   variety.com) — comfortably high precision.
+# * ``DEFAULT_SAFE_ADD_FA_FLOOR`` (100) and ``DEFAULT_SAFE_ADD_GA_THRESHOLD``
+#   (3500): the secondary GA route. GA is a weaker signal than FA, so it only
+#   qualifies a domain in combination with a nonzero FA floor — a domain must
+#   clear *both* fa >= floor and ga >= ga_threshold. This adds 5 more domains
+#   (e.g. animenewsnetwork.com, baseball-reference.com) for a combined set of
+#   28 domains, still well under the ~30-domain target.
+DEFAULT_SAFE_ADD_FA_THRESHOLD = 450
+DEFAULT_SAFE_ADD_FA_FLOOR = 100
+DEFAULT_SAFE_ADD_GA_THRESHOLD = 3500
+
+# The action applied to every safe-add proposal: the same boost value the base
+# generator uses for "generally reliable" (see STATUS_ACTION).
+_SAFE_ADD_ACTION = "boost=2"
+
+
+def _qualifies_for_safe_add(
+    fa: int, ga: int, fa_threshold: int, fa_floor: int, ga_threshold: int
+) -> bool:
+    """True if FA alone clears the primary threshold, or FA+GA clear the
+    secondary route (FA >= floor AND GA >= ga_threshold). GA never qualifies a
+    domain on its own — the floor is nonzero by design."""
+    if fa >= fa_threshold:
+        return True
+    return fa_floor > 0 and fa >= fa_floor and ga >= ga_threshold
+
+
+def safe_add_candidates(
+    citations: dict[str, dict],
+    rated_domains: set[str],
+    overlay_domains: set[str],
+    fa_threshold: int = DEFAULT_SAFE_ADD_FA_THRESHOLD,
+    fa_floor: int = DEFAULT_SAFE_ADD_FA_FLOOR,
+    ga_threshold: int = DEFAULT_SAFE_ADD_GA_THRESHOLD,
+) -> list[SafeAddCandidate]:
+    """Propose safe ``$boost`` additions from FA/GA citation evidence.
+
+    A domain qualifies only when ALL hold:
+
+    * it carries no rating at all (not in ``rated_domains`` — this also excludes
+      anything rated unreliable/deprecated anywhere, since such domains appear
+      in the ranking);
+    * it clears the FA-weighted threshold: ``fa_citations >= fa_threshold``, or
+      the secondary GA route (``fa_citations >= fa_floor`` AND
+      ``ga_citations >= ga_threshold``);
+    * it passes the same editorial/infrastructure filter the coverage-gap
+      report applies (drops government/education/military and archive domains);
+    * it is not in :data:`PRODUCT_PORTAL_DOMAINS`;
+    * it is not already covered by any rule in ``goggle_overlay.txt``
+      (``overlay_domains``).
+
+    Results are sorted by descending FA citations, then domain, so the
+    strongest evidence leads the report.
+    """
+    proposals: list[SafeAddCandidate] = []
+    for domain, counts in citations.items():
+        if domain in rated_domains:
+            continue
+        if domain in overlay_domains:
+            continue
+        if domain in PRODUCT_PORTAL_DOMAINS:
+            continue
+        if not _is_editorial_candidate(domain):
+            continue
+        fa = counts["fa"]
+        ga = counts["ga"]
+        if not _qualifies_for_safe_add(fa, ga, fa_threshold, fa_floor, ga_threshold):
+            continue
+        proposals.append(
+            SafeAddCandidate(
+                domain=domain,
+                fa_citations=fa,
+                ga_citations=ga,
+                total_citations=counts["total"],
+                proposed_action=_SAFE_ADD_ACTION,
+            )
+        )
+    proposals.sort(key=lambda c: (-c.fa_citations, c.domain))
+    return proposals
+
+
+def _write_safe_add_report(candidates: list[SafeAddCandidate], out_path: Path) -> None:
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fields = ["domain", "fa_citations", "ga_citations", "total_citations", "proposed_action"]
+    with out_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer.writeheader()
+        for c in candidates:
+            writer.writerow(
+                {
+                    "domain": c.domain,
+                    "fa_citations": c.fa_citations,
+                    "ga_citations": c.ga_citations,
+                    "total_citations": c.total_citations,
+                    "proposed_action": c.proposed_action,
+                }
+            )
+
+
+def render_safe_add_overlay_seed(candidates: list[SafeAddCandidate]) -> str:
+    """Render ready-to-paste ``$boost`` overlay lines for reviewed candidates.
+
+    This is a proposal artifact only: pasting the lines into
+    ``goggle_overlay.txt``'s manual section is a deliberate, reviewed operator
+    action. The file is never read by the build itself.
+    """
+    lines = [
+        "! PROPOSAL — not applied. Review before pasting into goggle_overlay.txt.",
+        "! Generated by the FA/GA safe-add pass (core/build_goggle.py). Each line",
+        "! is a candidate $boost rule for a domain with strong FA/GA citation",
+        "! evidence and no existing reliability rating. Verify each domain before",
+        "! adding it to the overlay's manual section.",
+        "",
+    ]
+    for c in candidates:
+        lines.append(f"${c.proposed_action},site={c.domain}")
+    return "\n".join(lines) + "\n"
+
+
+def _overlay_domains(overlay_pairs: list[tuple[str, Rule]]) -> set[str]:
+    return {rule.domain for _, rule in overlay_pairs if rule.domain}
+
+
 # --- CLI ---------------------------------------------------------------------
 
 
@@ -488,6 +639,34 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--gaps-out", type=Path, default=Path("outputs/goggle_gap_candidates.csv"))
     parser.add_argument("--top", type=int, default=50)
+    parser.add_argument(
+        "--safe-add-fa-threshold",
+        type=int,
+        default=DEFAULT_SAFE_ADD_FA_THRESHOLD,
+        help="Minimum FA citations to propose a safe $boost addition on its own.",
+    )
+    parser.add_argument(
+        "--safe-add-fa-floor",
+        type=int,
+        default=DEFAULT_SAFE_ADD_FA_FLOOR,
+        help="Minimum FA citations required for the secondary GA route to qualify.",
+    )
+    parser.add_argument(
+        "--safe-add-ga-threshold",
+        type=int,
+        default=DEFAULT_SAFE_ADD_GA_THRESHOLD,
+        help="Minimum GA citations for the secondary route (combined with the FA floor).",
+    )
+    parser.add_argument(
+        "--safe-add-candidates-out",
+        type=Path,
+        default=Path("outputs/safe_add_candidates.csv"),
+    )
+    parser.add_argument(
+        "--safe-add-overlay-seed-out",
+        type=Path,
+        default=Path("outputs/safe_add_overlay_seed.txt"),
+    )
     parser.add_argument(
         "--seed-overlay",
         action="store_true",
@@ -531,10 +710,27 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.citations.exists():
         gap_count = _write_gap_report(args.citations, set(domain_status), args.gaps_out, args.top)
+        citations = load_domain_citations(args.citations)
+        safe_add = safe_add_candidates(
+            citations,
+            rated_domains=set(domain_status),
+            overlay_domains=_overlay_domains(overlay_pairs),
+            fa_threshold=args.safe_add_fa_threshold,
+            fa_floor=args.safe_add_fa_floor,
+            ga_threshold=args.safe_add_ga_threshold,
+        )
+        _write_safe_add_report(safe_add, args.safe_add_candidates_out)
+        args.safe_add_overlay_seed_out.parent.mkdir(parents=True, exist_ok=True)
+        args.safe_add_overlay_seed_out.write_text(
+            render_safe_add_overlay_seed(safe_add), encoding="utf-8"
+        )
+        safe_add_count = len(safe_add)
     else:
+        print("build_goggle: citation table absent; skipping gap report and safe-add pass")
         gap_count = 0
+        safe_add_count = 0
 
-    print(f"base={len(base)} overlay={len(overlay_pairs)} gaps={gap_count}")
+    print(f"base={len(base)} overlay={len(overlay_pairs)} gaps={gap_count} safe_add={safe_add_count}")
     return 0
 
 
