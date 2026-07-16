@@ -155,9 +155,15 @@ def test_parse_page_undetermined_heading_resets_inherited_status() -> None:
 
 
 def test_parse_page_situational_table_leaves_status_unmapped() -> None:
-    """Board and table games' Situational table has no gr/gu/nc/d/m mapping."""
+    """Board and table games' Situational table has no gr/gu/nc/d/m mapping.
+
+    Reproduces the real page order — a 'Reliable Sources' section precedes
+    'Situational' — so the Situational entries must not inherit ``gr``.
+    """
 
     wikitext = (
+        "==Reliable Sources==\n"
+        "* [[Ars Technica]] - Staff reviews.\n"
         "==Situational ==\n"
         "{| class=\"wikitable sortable\"\n"
         "|-\n! Name !! Notes\n"
@@ -166,9 +172,41 @@ def test_parse_page_situational_table_leaves_status_unmapped() -> None:
     )
 
     entries = parse_page(wikitext)
+    assert len(entries) == 2
+    assert entries[0].source_name == "Ars Technica"
+    assert entries[0].reliability_status == "gr"
+    assert entries[1].source_name == "Comic Book Resources"
+    assert entries[1].reliability_status is None
+
+
+def test_parse_page_trailing_sections_do_not_inherit_status() -> None:
+    """'See also'/'Notes' sections must not inherit the prior section's status."""
+
+    wikitext = (
+        "==Unreliable==\n"
+        "* [[Fandom]] - User-generated.\n"
+        "==See also==\n"
+        "* [[Wikipedia:Advanced source searching]]\n"
+    )
+
+    entries = parse_page(wikitext)
+    assert len(entries) == 2
+    assert entries[0].reliability_status == "gu"
+    assert entries[1].reliability_status is None
+
+
+def test_parse_page_subsection_headings_keep_inherited_status() -> None:
+    """Subsections (=== ===) subdivide a status section and keep its status."""
+
+    wikitext = (
+        "==Generally reliable==\n"
+        "===Print magazines===\n"
+        "* [[Edge (magazine)]] - Staff reviews.\n"
+    )
+
+    entries = parse_page(wikitext)
     assert len(entries) == 1
-    assert entries[0].source_name == "Comic Book Resources"
-    assert entries[0].reliability_status is None
+    assert entries[0].reliability_status == "gr"
 
 
 def test_parse_page_handles_columns_list_wrapped_bullets() -> None:

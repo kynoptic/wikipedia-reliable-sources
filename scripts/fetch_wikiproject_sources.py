@@ -60,8 +60,9 @@ def _status_from_heading(text: str) -> Optional[str]:
 
     Returns ``""`` (empty string, distinct from ``None``) for headings that
     explicitly reset the inherited status to unrated, and ``None`` when the
-    heading carries no status information at all (in which case the caller
-    should keep inheriting the previously seen status).
+    heading carries no status information at all (the caller then inherits
+    the previous status only for subsection headings, and resets on
+    unrecognized top-level sections).
     """
     text = text.lower()
     for phrase in _RESET_HEADING_PHRASES:
@@ -152,6 +153,14 @@ def parse_page(wikitext: str) -> List[SourceEntry]:
             status = _status_from_heading(heading)
             if status is not None:
                 current_status = status or None
+            elif len(stripped) - len(stripped.lstrip("=")) <= 2:
+                # An unrecognized top-level section ("Situational",
+                # "See also", "Notes") starts new content that the prior
+                # section's status does not describe — reset rather than
+                # inherit, so its entries land unmapped instead of
+                # mislabeled. Deeper subsections keep inheriting: they
+                # subdivide the status section that contains them.
+                current_status = None
             continue
 
         if stripped.startswith("{|"):
