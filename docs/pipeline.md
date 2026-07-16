@@ -1,6 +1,6 @@
 # Build pipeline
 
-How to regenerate the `.goggle` files from upstream Wikipedia reliability data. The flow has three stages: fetch the rated source lists, normalize citation domains from Featured/Good articles, then build the goggles.
+How to regenerate the `.goggle` files from upstream Wikipedia reliability data. The flow has four stages: fetch the rated source lists, normalize citation domains from Featured/Good articles, join the ratings to citation domains, then build the goggles.
 
 Install dependencies first, from the repository root:
 
@@ -65,6 +65,16 @@ This stage mines the domains cited by Featured and Good articles so heavily-cite
    ```
 
 To normalize additional domains, add mappings to `data/alias_map.json`; see the [configuration guide](configuration.md) for the file format.
+
+## Join reliability ratings to citation domains
+
+`core.bridge_reliability` resolves each rated source to its registrable domain via Wikidata, then joins the ratings against the per-domain citation table to produce `outputs/reliability_ranking.csv`, `outputs/red_flags.csv`, and `outputs/coverage_gaps.csv`:
+
+```bash
+python -m core.bridge_reliability
+```
+
+By default it reads `perennial_sources.csv` and, if present, `wikiproject_sources.csv` — the `--wikiproject` input is optional and the bridge falls back to perennial-only (with a printed skip notice) when the file is absent, which is always the case in CI since both source files are gitignored. When a source is rated by both the Perennial Sources list and a WikiProject list, or by more than one WikiProject list, the merged rating is the most cautious of the two before domain resolution runs; domains that end up shared across inputs after resolution are collapsed the same way. A domain untouched by any WikiProject source is unaffected — its row is unchanged from a perennial-only run.
 
 ## Build the goggles
 
