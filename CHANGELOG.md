@@ -10,10 +10,11 @@ Engineering-facing changes live in [DEVLOG.md](DEVLOG.md).
 
 ### Added
 
-- WikiProject-sourced reliability ratings now feed into the goggles: the
-  reliability bridge joins `wikiproject_sources.csv` alongside the Perennial
-  Sources list, so domains from the six WikiProject source guides appear as
-  generated `.goggle` rules
+- The reliability bridge can now ingest WikiProject source ratings: a bridge
+  run with `--wikiproject` joins `wikiproject_sources.csv` alongside the
+  Perennial Sources list, so domains from the six WikiProject source guides
+  surface as generated `.goggle` rules on the next data regeneration (the
+  committed ranking and goggle files are not yet regenerated)
 
 ## [0.1.0] - 2026-06-26
 
