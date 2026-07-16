@@ -15,6 +15,15 @@ Engineering-facing changes live in [DEVLOG.md](DEVLOG.md).
   Perennial Sources list, so domains from the six WikiProject source guides
   surface as generated `.goggle` rules on the next data regeneration (the
   committed ranking and goggle files are not yet regenerated)
+- `fetch_wikiproject_sources.py` now covers three more WikiProject pages —
+  Anime and manga/Online reliable sources, Board and table games/Sources,
+  and National Basketball Association/References — so their ratings will
+  surface once the ranking is regenerated (tracked in #55, since a full
+  regeneration currently drops hand-edited rows)
+- The goggle header's documented page list now matches what the fetch layer
+  actually consumes; `WikiProject_Video_games/Search_engine` was removed
+  since its bare-URL inclusion/exclusion format does not fit the
+  reliability-status model the rest of the pipeline expects
 
 ## [0.1.0] - 2026-06-26
 

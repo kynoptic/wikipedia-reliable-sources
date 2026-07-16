@@ -95,6 +95,162 @@ def test_parse_page_handles_numbered_lists() -> None:
     assert entry.reliability_status == "gu"
 
 
+def test_parse_page_extracts_table_entries_with_discussion_last_cell() -> None:
+    """Anime and manga's reliable-sources table keeps a discussion-link last cell as notes."""
+
+    wikitext = (
+        "==Reliable==\n"
+        "===General===\n"
+        "{| class=\"wikitable sortable\"\n"
+        "|-\n! Source !! Owner !! Description !! Evidence !! Usable content !! Discussion(s)\n"
+        "|-\n| [https://example.com/ Example Site] || Jane Doe || A review site."
+        " || Cited elsewhere. || style=\"text-align: center;\"| Reviews"
+        " || Project: [[Talk:Example#Example Site|1]]\n"
+        "|}\n"
+    )
+
+    entries = parse_page(wikitext)
+    assert len(entries) == 1
+    entry = entries[0]
+    assert entry.source_name == "Example Site"
+    assert entry.reliability_status == "gr"
+    assert "Project" in entry.notes
+
+
+def test_parse_page_extracts_unreliable_bullet_entries_without_dash() -> None:
+    """Anime and manga's Unreliable bullets often have no dash separator."""
+
+    wikitext = (
+        "==Unreliable==\n"
+        "* Animetric (<code>www.animetric.com</code>) [https://www.animetric.com]"
+        " Self-published website by a person who is not a vetted industry expert\n"
+    )
+
+    entries = parse_page(wikitext)
+    assert len(entries) == 1
+    entry = entries[0]
+    assert "Animetric" in entry.source_name
+    assert entry.reliability_status == "gu"
+
+
+def test_parse_page_undetermined_heading_resets_inherited_status() -> None:
+    """Board and table games' 'Undetermined' section must not inherit prior status."""
+
+    wikitext = (
+        "==Unreliable==\n"
+        "* [[BoardGameGeek]] - User-based content.\n"
+        "==Undetermined==\n"
+        "* Di6dent\n"
+        "* GameFan\n"
+    )
+
+    entries = parse_page(wikitext)
+    assert len(entries) == 3
+    assert entries[0].source_name == "BoardGameGeek"
+    assert entries[0].reliability_status == "gu"
+    assert entries[1].source_name == "Di6dent"
+    assert entries[1].reliability_status is None
+    assert entries[2].source_name == "GameFan"
+    assert entries[2].reliability_status is None
+
+
+def test_parse_page_situational_table_leaves_status_unmapped() -> None:
+    """Board and table games' Situational table has no gr/gu/nc/d/m mapping.
+
+    Reproduces the real page order — a 'Reliable Sources' section precedes
+    'Situational' — so the Situational entries must not inherit ``gr``.
+    """
+
+    wikitext = (
+        "==Reliable Sources==\n"
+        "* [[Ars Technica]] - Staff reviews.\n"
+        "==Situational ==\n"
+        "{| class=\"wikitable sortable\"\n"
+        "|-\n! Name !! Notes\n"
+        "|-\n| [[Comic Book Resources]] || Marginally reliable to unreliable.\n"
+        "|}\n"
+    )
+
+    entries = parse_page(wikitext)
+    assert len(entries) == 2
+    assert entries[0].source_name == "Ars Technica"
+    assert entries[0].reliability_status == "gr"
+    assert entries[1].source_name == "Comic Book Resources"
+    assert entries[1].reliability_status is None
+
+
+def test_parse_page_trailing_sections_do_not_inherit_status() -> None:
+    """'See also'/'Notes' sections must not inherit the prior section's status."""
+
+    wikitext = (
+        "==Unreliable==\n"
+        "* [[Fandom]] - User-generated.\n"
+        "==See also==\n"
+        "* [[Wikipedia:Advanced source searching]]\n"
+    )
+
+    entries = parse_page(wikitext)
+    assert len(entries) == 2
+    assert entries[0].reliability_status == "gu"
+    assert entries[1].reliability_status is None
+
+
+def test_parse_page_subsection_headings_keep_inherited_status() -> None:
+    """Subsections (=== ===) subdivide a status section and keep its status."""
+
+    wikitext = (
+        "==Generally reliable==\n"
+        "===Print magazines===\n"
+        "* [[Edge (magazine)]] - Staff reviews.\n"
+    )
+
+    entries = parse_page(wikitext)
+    assert len(entries) == 1
+    assert entries[0].reliability_status == "gr"
+
+
+def test_parse_page_handles_columns_list_wrapped_bullets() -> None:
+    """Bullet lists wrapped in a {{columns-list}} template still parse per line."""
+
+    wikitext = (
+        "==Unreliable or questionable sources==\n"
+        "{{columns-list|colwidth=22em|\n"
+        "* ''101dogbreeds.com'' [https://101dogbreeds.com]\n"
+        "* ''allthingsdogs.com'' [https://allthingsdogs.com]\n"
+        "}}\n"
+    )
+
+    entries = parse_page(wikitext)
+    assert len(entries) == 2
+    assert entries[0].reliability_status == "gu"
+    assert "101dogbreeds.com" in entries[0].source_name
+    assert entries[1].reliability_status == "gu"
+    assert "allthingsdogs.com" in entries[1].source_name
+
+
+def test_parse_page_nba_wikilinked_status_headings() -> None:
+    """WikiProject NBA uses piped wikilinks in its status headings."""
+
+    wikitext = (
+        "==[[WP:GREL|Generally reliable]]==\n"
+        "===Websites===\n"
+        "*https://www.espn.com ([[Wikipedia:Reliable sources/Noticeboard/Archive 318#ESPN|1]])\n"
+        "==[[WP:MREL|No consensus, unclear, or additional considerations apply]]==\n"
+        "*[[ClutchPoints]] ([[Wikipedia:Reliable sources/Noticeboard/Archive 436#ClutchPoints|1]])\n"
+        "==[[WP:GUNREL|Generally unreliable]]==\n"
+        "*[[Bleacher Report]] ([[Wikipedia:Reliable sources/Noticeboard/Archive 91#Bleacher Report|1]])\n"
+    )
+
+    entries = parse_page(wikitext)
+    assert len(entries) == 3
+    assert entries[0].reliability_status == "gr"
+    assert "espn.com" in entries[0].source_name
+    assert entries[1].reliability_status == "nc"
+    assert "ClutchPoints" in entries[1].source_name
+    assert entries[2].reliability_status == "gu"
+    assert "Bleacher Report" in entries[2].source_name
+
+
 def test_parse_page_class_based_status() -> None:
     """Rows with reliability class attributes should set the status."""
 
