@@ -25,6 +25,9 @@ PAGES = [
     "Wikipedia:WikiProject_Christian_music/Sources",
     "Wikipedia:WikiProject_Professional_wrestling/Sources",
     "Wikipedia:WikiProject_Korea/Reliable_sources",
+    "Wikipedia:WikiProject_Anime_and_manga/Online_reliable_sources",
+    "Wikipedia:WikiProject_Board_and_table_games/Sources",
+    "Wikipedia:WikiProject_National_Basketball_Association/References",
 ]
 
 
@@ -45,9 +48,25 @@ def fetch_page(title: str) -> str:
     return page.get("revisions", [])[0]["*"] if "revisions" in page else ""
 
 
+#: Headings that explicitly mean "not yet rated" rather than reusing the
+#: reliability status inherited from a prior heading (e.g. WikiProject Board
+#: and table games/Sources' "Undetermined" section, which otherwise would
+#: stay tagged with whatever status preceded it).
+_RESET_HEADING_PHRASES = ("undetermined",)
+
+
 def _status_from_heading(text: str) -> Optional[str]:
-    """Return the reliability code if the heading text matches a status."""
+    """Return the reliability code if the heading text matches a status.
+
+    Returns ``""`` (empty string, distinct from ``None``) for headings that
+    explicitly reset the inherited status to unrated, and ``None`` when the
+    heading carries no status information at all (in which case the caller
+    should keep inheriting the previously seen status).
+    """
     text = text.lower()
+    for phrase in _RESET_HEADING_PHRASES:
+        if phrase in text:
+            return ""
     # Check longer phrases first to avoid matching "reliable" inside
     # "unreliable" headings.
     order = [
@@ -131,8 +150,8 @@ def parse_page(wikitext: str) -> List[SourceEntry]:
         if stripped.startswith("="):
             heading = mwparserfromhell.parse(stripped).strip_code().strip()
             status = _status_from_heading(heading)
-            if status:
-                current_status = status
+            if status is not None:
+                current_status = status or None
             continue
 
         if stripped.startswith("{|"):
