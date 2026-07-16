@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Engineering-facing changes live in [DEVLOG.md](DEVLOG.md).
 
+## [Unreleased]
+
+### Added
+
+- The reliability bridge can now ingest WikiProject source ratings: a bridge
+  run with `--wikiproject` joins `wikiproject_sources.csv` alongside the
+  Perennial Sources list, so domains from the six WikiProject source guides
+  surface as generated `.goggle` rules on the next data regeneration (the
+  committed ranking and goggle files are not yet regenerated)
+
 ## [0.1.0] - 2026-06-26
 
 First tagged release.
