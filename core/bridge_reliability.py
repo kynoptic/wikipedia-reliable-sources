@@ -77,14 +77,20 @@ def _most_cautious(statuses: list[str]) -> str:
 
 
 def load_reliability(path: Path) -> dict[str, str]:
-    """Return ``{source_name: status}`` from a perennial-sources CSV."""
+    """Return ``{source_name: status}`` from a perennial-sources CSV.
+
+    Duplicate ``source_name`` rows collapse to the most cautious status.
+    ``wikiproject_sources.csv`` concatenates every fetched WikiProject page
+    without deduplication, so one source can carry a different rating per
+    page; last-row-wins would let file order decide which rating survives.
+    """
     out: dict[str, str] = {}
     with path.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
             name = (row.get("source_name") or "").strip()
             status = (row.get("reliability_status") or "").strip()
             if name and status:
-                out[name] = status
+                out[name] = _most_cautious([out[name], status]) if name in out else status
     return out
 
 
@@ -95,8 +101,8 @@ def merge_reliability(
 
     A plain dict union would let whichever side is applied last silently clobber
     the other's rating; a source rated by both the perennial list and a
-    WikiProject list (or by two WikiProject lists, applied pairwise) must keep
-    the more cautious of the two statuses instead.
+    WikiProject list must keep the more cautious of the two statuses instead.
+    Collisions *within* one file are already collapsed by ``load_reliability``.
     """
     merged = dict(base)
     for name, status in addition.items():

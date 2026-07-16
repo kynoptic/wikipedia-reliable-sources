@@ -44,6 +44,30 @@ def test_load_reliability(tmp_path: Path) -> None:
     }
 
 
+def test_load_reliability_duplicate_names_collapse_to_most_cautious(
+    tmp_path: Path,
+) -> None:
+    """Two WikiProject pages rating one source differently in one CSV.
+
+    The most cautious rating must survive regardless of row order —
+    last-row-wins would let fetch page order decide.
+    """
+    cautious_last = tmp_path / "a.csv"
+    cautious_last.write_text(
+        "source_name,reliability_status,notes\n"
+        "YouTube,gr,rated by one project\n"
+        "YouTube,gu,rated by another project\n"
+    )
+    cautious_first = tmp_path / "b.csv"
+    cautious_first.write_text(
+        "source_name,reliability_status,notes\n"
+        "YouTube,gu,rated by another project\n"
+        "YouTube,gr,rated by one project\n"
+    )
+    assert load_reliability(cautious_last) == {"YouTube": "gu"}
+    assert load_reliability(cautious_first) == {"YouTube": "gu"}
+
+
 def test_load_domain_citations_keys_by_full_domain(tmp_path: Path) -> None:
     csv_path = tmp_path / "c.csv"
     csv_path.write_text(
