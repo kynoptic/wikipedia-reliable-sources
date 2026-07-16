@@ -24,7 +24,7 @@ It prints the number of parsed entries (for example, `Fetched 485 sources`). Eac
 | `reliability_status` | Two-letter code from the `WP:RSPSTATUS` legend (`gr` = generally reliable, `gu` = generally unreliable, `nc` = no consensus, `d` = deprecated, `m` = marginal). |
 | `notes` | Summary of discussions about the source. |
 
-Download the per-WikiProject reliability tables (video games, film, albums, and others), writing `wikiproject_sources.json` and `wikiproject_sources.csv` at the repository root:
+Download the per-WikiProject reliability tables (video games, film, albums, and others), writing `wikiproject_sources.json` and `wikiproject_sources.csv` at the repository root. Both files use the same `source_name`/`reliability_status`/`notes` field schema as the Perennial Sources output above:
 
 ```bash
 python scripts/fetch_wikiproject_sources.py
