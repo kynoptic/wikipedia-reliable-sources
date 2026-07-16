@@ -88,6 +88,25 @@ def load_reliability(path: Path) -> dict[str, str]:
     return out
 
 
+def merge_reliability(
+    base: dict[str, str], addition: dict[str, str]
+) -> dict[str, str]:
+    """Union two ``{source_name: status}`` maps, most-cautious on name collision.
+
+    A plain dict union would let whichever side is applied last silently clobber
+    the other's rating; a source rated by both the perennial list and a
+    WikiProject list (or by two WikiProject lists, applied pairwise) must keep
+    the more cautious of the two statuses instead.
+    """
+    merged = dict(base)
+    for name, status in addition.items():
+        if name in merged:
+            merged[name] = _most_cautious([merged[name], status])
+        else:
+            merged[name] = status
+    return merged
+
+
 def load_domain_citations(path: Path) -> dict[str, dict]:
     """Return ``{domain: {total, fa, ga, articles}}`` from a per-domain CSV."""
     out: dict[str, dict] = {}
@@ -415,6 +434,16 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--perennial", type=Path, default=Path("perennial_sources.csv"))
     parser.add_argument(
+        "--wikiproject",
+        type=Path,
+        default=Path("wikiproject_sources.csv"),
+        help=(
+            "WikiProject-sourced reliability ratings, merged with --perennial "
+            "(most-cautious on name collision). Optional: skipped with a notice "
+            "if the file is absent, e.g. before running scripts/fetch_wikiproject_sources.py."
+        ),
+    )
+    parser.add_argument(
         "--citations",
         type=Path,
         default=Path("data/processed/citations_2023_by_domain.csv"),
@@ -424,6 +453,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     reliability = load_reliability(args.perennial)
+    if args.wikiproject.exists():
+        reliability = merge_reliability(reliability, load_reliability(args.wikiproject))
+    else:
+        print(f"Skipping WikiProject ratings: {args.wikiproject} not found")
     name_domains = resolve_domains(list(reliability))
     citations = load_domain_citations(args.citations)
     matched = collapse_by_domain(bridge(reliability, name_domains, citations))

@@ -1,3 +1,4 @@
+import csv
 import sys
 from pathlib import Path
 from typing import Any
@@ -5,12 +6,14 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import core.bridge_reliability as br
+from core.build_goggle import domain_status_from_ranking, generate_base_rules
 from core.bridge_reliability import (
     bridge,
     collapse_by_domain,
     coverage_gaps,
     load_domain_citations,
     load_reliability,
+    merge_reliability,
     resolve_domains,
 )
 
@@ -295,6 +298,32 @@ def test_resolve_domains_retries_with_stripped_qualifier(monkeypatch: Any) -> No
     assert result == {"The New York Times (NYT)": {"nytimes.com"}}
 
 
+def test_merge_reliability_unions_disjoint_sources() -> None:
+    perennial = {"NYT": "gr"}
+    wikiproject = {"IGN": "gr"}
+    assert merge_reliability(perennial, wikiproject) == {"NYT": "gr", "IGN": "gr"}
+
+
+def test_merge_reliability_most_cautious_on_name_collision() -> None:
+    # A source rated by both the perennial list and a WikiProject list must
+    # resolve to the more cautious of the two ratings, not last-writer-wins.
+    perennial = {"Forbes": "gr"}
+    wikiproject = {"Forbes": "d"}
+    assert merge_reliability(perennial, wikiproject) == {"Forbes": "d"}
+    # Order-independent: perennial passed second still yields the cautious rating.
+    assert merge_reliability({"Forbes": "d"}, {"Forbes": "gr"}) == {"Forbes": "d"}
+
+
+def test_merge_reliability_most_cautious_across_two_wikiprojects() -> None:
+    # Same source rated differently by two WikiProject lists (merged before this
+    # helper runs) must still collapse to the most cautious status.
+    perennial: dict[str, str] = {}
+    wikiproject = {"IGN": "nc"}
+    merged_once = merge_reliability(perennial, wikiproject)
+    merged_twice = merge_reliability(merged_once, {"IGN": "d"})
+    assert merged_twice == {"IGN": "d"}
+
+
 def test_resolve_domains_end_to_end(monkeypatch: Any) -> None:
     def fake_get(url, params=None, headers=None, timeout=None):
         if url == br.WP_API:
@@ -319,3 +348,201 @@ def test_resolve_domains_end_to_end(monkeypatch: Any) -> None:
 
     monkeypatch.setattr(br.requests, "get", fake_get)
     assert resolve_domains(["The New York Times"]) == {"The New York Times": {"nytimes.com"}}
+
+
+def test_main_joins_wikiproject_only_domain(tmp_path: Any, monkeypatch: Any) -> None:
+    # GIVEN wikiproject_sources.csv WHEN the bridge runs THEN its rated sources
+    # are resolved to domains and joined into reliability_ranking.csv.
+    perennial_path = tmp_path / "perennial.csv"
+    perennial_path.write_text("source_name,reliability_status,notes\nNYT,gr,n\n")
+    wikiproject_path = tmp_path / "wikiproject.csv"
+    wikiproject_path.write_text("source_name,reliability_status,notes\nIGN,gr,n\n")
+    citations_path = tmp_path / "citations.csv"
+    citations_path.write_text(
+        "domain_url,suffix_url,total_citations,fa_citations,ga_citations,distinct_articles\n"
+        "nytimes,com,100,10,20,50\n"
+        "ign,com,40,1,2,10\n"
+    )
+    outdir = tmp_path / "outputs"
+
+    def fake_resolve_domains(names: list[str]) -> dict[str, set[str]]:
+        return {"NYT": {"nytimes.com"}, "IGN": {"ign.com"}}
+
+    monkeypatch.setattr(br, "resolve_domains", fake_resolve_domains)
+
+    rc = br.main(
+        [
+            "--perennial",
+            str(perennial_path),
+            "--wikiproject",
+            str(wikiproject_path),
+            "--citations",
+            str(citations_path),
+            "--outdir",
+            str(outdir),
+        ]
+    )
+    assert rc == 0
+    ranking = list(csv.DictReader((outdir / "reliability_ranking.csv").open()))
+    domains = {row["domain"] for row in ranking}
+    assert domains == {"nytimes.com", "ign.com"}
+
+
+def test_main_domain_rated_by_both_lists_gets_most_cautious_status(
+    tmp_path: Any, monkeypatch: Any
+) -> None:
+    # GIVEN a domain rated by both a WikiProject and the perennial list THEN the
+    # merged row carries the most cautious status.
+    perennial_path = tmp_path / "perennial.csv"
+    perennial_path.write_text("source_name,reliability_status,notes\nForbes,gr,n\n")
+    wikiproject_path = tmp_path / "wikiproject.csv"
+    wikiproject_path.write_text("source_name,reliability_status,notes\nForbes,d,n\n")
+    citations_path = tmp_path / "citations.csv"
+    citations_path.write_text(
+        "domain_url,suffix_url,total_citations,fa_citations,ga_citations,distinct_articles\n"
+        "forbes,com,100,10,20,50\n"
+    )
+    outdir = tmp_path / "outputs"
+
+    def fake_resolve_domains(names: list[str]) -> dict[str, set[str]]:
+        return {"Forbes": {"forbes.com"}}
+
+    monkeypatch.setattr(br, "resolve_domains", fake_resolve_domains)
+
+    rc = br.main(
+        [
+            "--perennial",
+            str(perennial_path),
+            "--wikiproject",
+            str(wikiproject_path),
+            "--citations",
+            str(citations_path),
+            "--outdir",
+            str(outdir),
+        ]
+    )
+    assert rc == 0
+    ranking = list(csv.DictReader((outdir / "reliability_ranking.csv").open()))
+    assert len(ranking) == 1
+    assert ranking[0]["status"] == "d"  # deprecated (most cautious) wins
+
+
+def test_main_missing_wikiproject_file_degrades_to_perennial_only(
+    tmp_path: Any, monkeypatch: Any, capsys: Any
+) -> None:
+    # A missing --wikiproject file (the default gitignored path) must not error;
+    # the bridge runs perennial-only with a printed skip notice.
+    perennial_path = tmp_path / "perennial.csv"
+    perennial_path.write_text("source_name,reliability_status,notes\nNYT,gr,n\n")
+    citations_path = tmp_path / "citations.csv"
+    citations_path.write_text(
+        "domain_url,suffix_url,total_citations,fa_citations,ga_citations,distinct_articles\n"
+        "nytimes,com,100,10,20,50\n"
+    )
+    outdir = tmp_path / "outputs"
+    missing_wikiproject = tmp_path / "does_not_exist.csv"
+
+    def fake_resolve_domains(names: list[str]) -> dict[str, set[str]]:
+        return {"NYT": {"nytimes.com"}}
+
+    monkeypatch.setattr(br, "resolve_domains", fake_resolve_domains)
+
+    rc = br.main(
+        [
+            "--perennial",
+            str(perennial_path),
+            "--wikiproject",
+            str(missing_wikiproject),
+            "--citations",
+            str(citations_path),
+            "--outdir",
+            str(outdir),
+        ]
+    )
+    assert rc == 0
+    ranking = list(csv.DictReader((outdir / "reliability_ranking.csv").open()))
+    assert len(ranking) == 1
+    assert ranking[0]["domain"] == "nytimes.com"
+    assert "skip" in capsys.readouterr().out.lower()
+
+
+def test_main_wikiproject_source_with_no_resolvable_domain_is_skipped(
+    tmp_path: Any, monkeypatch: Any
+) -> None:
+    # A WikiProject source Wikidata can't resolve to a domain must be dropped
+    # (same behavior as an unresolved perennial source), not error out.
+    perennial_path = tmp_path / "perennial.csv"
+    perennial_path.write_text("source_name,reliability_status,notes\nNYT,gr,n\n")
+    wikiproject_path = tmp_path / "wikiproject.csv"
+    wikiproject_path.write_text("source_name,reliability_status,notes\nUnmapped,gr,n\n")
+    citations_path = tmp_path / "citations.csv"
+    citations_path.write_text(
+        "domain_url,suffix_url,total_citations,fa_citations,ga_citations,distinct_articles\n"
+        "nytimes,com,100,10,20,50\n"
+    )
+    outdir = tmp_path / "outputs"
+
+    def fake_resolve_domains(names: list[str]) -> dict[str, set[str]]:
+        return {"NYT": {"nytimes.com"}}  # "Unmapped" absent
+
+    monkeypatch.setattr(br, "resolve_domains", fake_resolve_domains)
+
+    rc = br.main(
+        [
+            "--perennial",
+            str(perennial_path),
+            "--wikiproject",
+            str(wikiproject_path),
+            "--citations",
+            str(citations_path),
+            "--outdir",
+            str(outdir),
+        ]
+    )
+    assert rc == 0
+    ranking = list(csv.DictReader((outdir / "reliability_ranking.csv").open()))
+    assert [row["domain"] for row in ranking] == ["nytimes.com"]
+
+
+def test_wikiproject_only_domain_becomes_generated_base_rule(
+    tmp_path: Any, monkeypatch: Any
+) -> None:
+    # GIVEN the change WHEN the goggle is rebuilt THEN WikiProject-only domains
+    # appear as generated base rules (mirrors build_goggle's own consumption of
+    # reliability_ranking.csv, which is domain-agnostic to the row's source).
+    perennial_path = tmp_path / "perennial.csv"
+    perennial_path.write_text("source_name,reliability_status,notes\nNYT,gr,n\n")
+    wikiproject_path = tmp_path / "wikiproject.csv"
+    wikiproject_path.write_text("source_name,reliability_status,notes\nIGN,gr,n\n")
+    citations_path = tmp_path / "citations.csv"
+    citations_path.write_text(
+        "domain_url,suffix_url,total_citations,fa_citations,ga_citations,distinct_articles\n"
+        "nytimes,com,100,10,20,50\n"
+        "ign,com,40,1,2,10\n"
+    )
+    outdir = tmp_path / "outputs"
+
+    def fake_resolve_domains(names: list[str]) -> dict[str, set[str]]:
+        return {"NYT": {"nytimes.com"}, "IGN": {"ign.com"}}
+
+    monkeypatch.setattr(br, "resolve_domains", fake_resolve_domains)
+
+    rc = br.main(
+        [
+            "--perennial",
+            str(perennial_path),
+            "--wikiproject",
+            str(wikiproject_path),
+            "--citations",
+            str(citations_path),
+            "--outdir",
+            str(outdir),
+        ]
+    )
+    assert rc == 0
+
+    domain_status = domain_status_from_ranking(outdir / "reliability_ranking.csv")
+    base_rules = generate_base_rules(domain_status)
+    rule_domains = {rule.domain for rule in base_rules.values()}
+    assert "ign.com" in rule_domains  # WikiProject-only domain becomes a base rule
+    assert "nytimes.com" in rule_domains  # perennial domain unaffected
