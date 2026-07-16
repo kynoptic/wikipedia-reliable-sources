@@ -16,6 +16,9 @@ Reliability ratings are drawn from these Wikipedia pages:
 - [WikiProject Christian music/Sources](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_Christian_music/Sources)
 - [WikiProject Professional wrestling/Sources](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_Professional_wrestling/Sources)
 - [WikiProject Korea/Reliable sources](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_Korea/Reliable_sources)
+- [WikiProject Anime and manga/Online reliable sources](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_Anime_and_manga/Online_reliable_sources)
+- [WikiProject Board and table games/Sources](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_Board_and_table_games/Sources)
+- [WikiProject National Basketball Association/References](https://en.wikipedia.org/wiki/Wikipedia:WikiProject_National_Basketball_Association/References)
 
 Sources frequently cited in Featured Articles (FA) and Good Articles (GA) are also included.
 
