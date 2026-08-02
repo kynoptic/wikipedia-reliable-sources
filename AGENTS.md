@@ -25,7 +25,7 @@ The full data pipeline (fetch → normalize → build) is documented in the [bui
 - `scripts/` – standalone CLIs: `fetch_perennial_sources.py`, `fetch_wikiproject_sources.py`, `update_checker.py`
 - `data/` – raw and processed datasets; `outputs/` – generated rankings and reports
 - `tests/` – pytest suite; `.github/workflows/ci.yml` – runs `pytest` on push and PR
-- `wikipedia-reliable-sources.goggle`, `wikipedia-reliable-sources-only.goggle` – build artifacts, never hand-edited
+- `wikipedia-reliable-sources.goggle`, `wikipedia-reliable-sources-only.goggle`, `wikipedia-reliable-sources-demote.goggle` – build artifacts, never hand-edited
 
 ## Conventions
 
