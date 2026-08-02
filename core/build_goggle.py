@@ -88,6 +88,11 @@ SUPPRESS_IN_ONLY = frozenset(
     }
 )
 
+# Actions a variant may emit. A variant whose ``actions`` omits an action drops
+# every rule carrying it at render time, so the same merged corpus renders each
+# variant.
+ALL_ACTIONS = frozenset({"boost", "downrank", "discard"})
+
 VARIANTS: dict[str, dict] = {
     "default": {
         "filename": "wikipedia-reliable-sources.goggle",
@@ -99,6 +104,19 @@ VARIANTS: dict[str, dict] = {
         ),
         "catch_all": False,
         "suppress": frozenset(),
+        "actions": ALL_ACTIONS,
+    },
+    "demote": {
+        "filename": "wikipedia-reliable-sources-demote.goggle",
+        "name": "Wikipedia reliable sources (demote only)",
+        "description": (
+            "Aligns with Wikipedia community consensus to reduce the ranking of "
+            "contentious sources and eliminate unreliable sources, without "
+            "elevating any source."
+        ),
+        "catch_all": False,
+        "suppress": frozenset(),
+        "actions": frozenset({"downrank", "discard"}),
     },
     "only": {
         "filename": "wikipedia-reliable-sources-only.goggle",
@@ -109,6 +127,7 @@ VARIANTS: dict[str, dict] = {
         ),
         "catch_all": True,
         "suppress": SUPPRESS_IN_ONLY,
+        "actions": ALL_ACTIONS,
     },
 }
 
@@ -399,6 +418,12 @@ def seed_overlay(current: list[Rule], base: dict[tuple[str, str], Rule]) -> str:
 
 def _header_lines(variant: str) -> list[str]:
     cfg = VARIANTS[variant]
+    actions = cfg.get("actions", ALL_ACTIONS)
+    legend = [
+        ('! $boost=2    - "Generally reliable" and "Reliable"', "boost"),
+        ('! $downrank=2 - "No consensus"', "downrank"),
+        ('! $discard    - "Unreliable", "Blacklisted", "Deprecated"', "discard"),
+    ]
     return [
         f"! name: {cfg['name']}",
         f"! description: {cfg['description']}",
@@ -418,10 +443,7 @@ def _header_lines(variant: str) -> list[str]:
         "!       Wikipedia:WikiProject_National_Basketball_Association/References",
         "!       Sources often used in featured articles (FA) and good articles (GA)",
         "",
-        '! $boost=2    - "Generally reliable" and "Reliable"',
-        '! $downrank=2 - "No consensus"',
-        '! $discard    - "Unreliable", "Blacklisted", "Deprecated"',
-    ]
+    ] + [line for line, action in legend if action in actions]
 
 
 def render_goggle(ordered_rules: list[tuple[str, Rule]], variant: str) -> str:
@@ -432,8 +454,11 @@ def render_goggle(ordered_rules: list[tuple[str, Rule]], variant: str) -> str:
     if cfg["catch_all"]:
         lines += ["! Exclude any results that do not match", "$discard", ""]
     suppress = cfg["suppress"]
+    actions = cfg.get("actions", ALL_ACTIONS)
     section = None
     for rule_section, rule in ordered_rules:
+        if rule.action not in actions:
+            continue
         if rule_section and rule_section != section:
             lines.append(rule_section)
             section = rule_section

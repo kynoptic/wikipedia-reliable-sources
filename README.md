@@ -1,9 +1,10 @@
 # Wikipedia Goggles
 
-Two [Brave Search Goggles](https://github.com/brave/goggles-quickstart) that rerank search results to promote sources the Wikipedia community considers reliable:
+Three [Brave Search Goggles](https://github.com/brave/goggles-quickstart) that rerank search results according to what the Wikipedia community considers reliable:
 
 1. **`wikipedia-reliable-sources-only.goggle`** – Boosts reliable sources and downranks contentious ones, showing no other results. [Search using this Goggle](https://search.brave.com/goggles?goggles_id=https%253A%252F%252Fraw.githubusercontent.com%252Fkynoptic%252Fwikipedia-reliable-sources%252Fmain%252Fwikipedia-reliable-sources-only.goggle).
 2. **`wikipedia-reliable-sources.goggle`** – Similar to the first, but allows additional sources while discarding those deemed unreliable. [Search using this Goggle](https://search.brave.com/goggles?goggles_id=https%3A%2F%2Fraw.githubusercontent.com%2Fkynoptic%2Fwikipedia-reliable-sources%2Fmain%2Fwikipedia-reliable-sources.goggle).
+3. **`wikipedia-reliable-sources-demote.goggle`** – Downranks contentious sources and discards unreliable ones, boosting nothing, so normal ranking decides everything else. [Search using this Goggle](https://search.brave.com/goggles?goggles_id=https%3A%2F%2Fraw.githubusercontent.com%2Fkynoptic%2Fwikipedia-reliable-sources%2Fmain%2Fwikipedia-reliable-sources-demote.goggle).
 
 ## Reliability sources
 

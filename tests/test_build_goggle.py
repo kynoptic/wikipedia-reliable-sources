@@ -320,6 +320,27 @@ def test_only_variant_comments_out_suppressed_google_domains() -> None:
     assert "\n$boost=2,site=google.com" in default
 
 
+def test_should_drop_boost_rules_when_rendering_demote_variant() -> None:
+    rules = [
+        ("! Source: x", Rule("boost", 2, "good.com")),
+        ("! Source: x", Rule("downrank", 2, "meh.com")),
+        ("! Source: x", Rule("discard", None, "bad.com")),
+        ("! Source: x", Rule("boost", 2, "topic.com", "/*science^")),
+    ]
+    out = render_goggle(rules, "demote")
+    assert "$boost" not in out
+    assert "$downrank=2,site=meh.com" in out
+    assert "$discard,site=bad.com" in out
+    assert "\n$discard\n" not in out  # no whitelist catch-all
+
+
+def test_should_omit_boost_legend_when_rendering_demote_variant() -> None:
+    out = render_goggle([], "demote")
+    assert out.startswith("! name: Wikipedia reliable sources (demote only)\n")
+    assert "Generally reliable" not in out
+    assert '! $downrank=2 - "No consensus"' in out
+
+
 def test_default_header_names_the_default_variant() -> None:
     out = render_goggle([], "default")
     assert out.startswith("! name: Wikipedia reliable sources\n")
