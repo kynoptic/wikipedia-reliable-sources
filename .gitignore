@@ -38,3 +38,7 @@ src/utils/__pycache__/
 
 # Node tooling (markdownlint)
 node_modules/
+
+# Night-shift run output (ephemeral; the durable record is the issue and PR)
+.agent/progress/
+night-shift-reports/
