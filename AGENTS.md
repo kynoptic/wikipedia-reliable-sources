@@ -35,4 +35,4 @@ The full data pipeline (fetch → normalize → build) is documented in the [bui
 ## Constraints
 
 - **ALWAYS** run `pytest` and ensure it passes before committing.
-- `goggle_overlay.txt` holds rules the generator cannot yet derive; the curated overlay wins on conflict with the base layer.
+- `goggle_overlay.txt` contains rules the generator cannot yet derive; the curated overlay wins on conflict with the base layer.
