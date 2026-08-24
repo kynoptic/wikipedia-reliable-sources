@@ -1,0 +1,25 @@
+repos:
+  - repo: local
+    hooks:
+      - id: commit-body-format
+        name: Commit body bullet format
+        language: script
+        entry: build-tools/quality-checks/check-commit-body.sh
+        stages: [commit-msg]
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+        # .vscode config is JSONC; comments are valid there but not JSON.
+        exclude: ^\.vscode/
