@@ -1,7 +1,14 @@
 {
+  "gitignore": true,
+  "globs": ["**/*.md"],
   // Markdown linting for this repository, powered by markdownlint-styleguide.
   // See https://github.com/kynoptic/markdownlint-styleguide for rule docs.
   "ignores": [
+    ".claude/**",
+    ".gitea/**",
+    ".github/**",
+    "CLAUDE.md",
+    "**/*-template.md",
     "node_modules/**",
     ".venv/**",
     "**/.venv/**",
