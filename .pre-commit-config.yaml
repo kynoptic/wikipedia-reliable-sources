@@ -11,8 +11,8 @@ repos:
       # so the scan uses the same rules whether pre-commit or git invokes it.
       - id: git-secrets
         name: Secret scan
-        language: system
-        entry: git secrets --pre_commit_hook --
+        language: script
+        entry: build-tools/quality-checks/secret-scan.sh
         pass_filenames: false
 
       # `language: system` runs against this repo's node_modules, where the

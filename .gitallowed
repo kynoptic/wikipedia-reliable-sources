@@ -1,0 +1,6 @@
+# git-secrets allowed patterns for this repository.
+
+# The registration script necessarily spells out the patterns it registers, and
+# this file necessarily spells out the patterns it exempts. Both match themselves.
+^build-tools/quality-checks/register-secret-patterns\.sh:
+^\.gitallowed:
