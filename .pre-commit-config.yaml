@@ -7,6 +7,14 @@ repos:
         entry: build-tools/quality-checks/check-commit-body.sh
         stages: [commit-msg]
 
+      # Patterns and the allow-list live in this repo's git config and .gitallowed,
+      # so the scan uses the same rules whether pre-commit or git invokes it.
+      - id: git-secrets
+        name: Secret scan
+        language: system
+        entry: git secrets --pre_commit_hook --
+        pass_filenames: false
+
       # `language: system` runs against this repo's node_modules, where the
       # markdownlint-styleguide custom rules resolve; an isolated environment would
       # silently skip every custom rule. `pass_filenames: false` stops cli2
