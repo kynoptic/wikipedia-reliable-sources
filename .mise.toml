@@ -1,0 +1,6 @@
+# Pinned toolchain (managed by mise) — decouples this repo from the
+# Homebrew-global runtimes so `brew upgrade` cannot change its versions.
+# package.json still declares engines node >=20 as the supported floor;
+# this pin is the exact version the repo is built and tested against.
+[tools]
+node = "24"
